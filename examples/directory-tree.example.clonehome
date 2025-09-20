@@ -1,0 +1,54 @@
+{
+  "rules": [
+    {
+      "type": "language",
+      "value": "JavaScript",
+      "directory": "languages/javascript"
+    },
+    {
+      "type": "language",
+      "value": "Python",
+      "directory": "languages/python"
+    },
+    {
+      "type": "language",
+      "value": "TypeScript",
+      "directory": "languages/typescript"
+    },
+    {
+      "type": "pattern",
+      "value": ".*-api$",
+      "directory": "apis"
+    },
+    {
+      "type": "pattern",
+      "value": ".*-frontend$",
+      "directory": "frontends"
+    },
+    {
+      "type": "pattern",
+      "value": "^website-.*",
+      "directory": "websites"
+    },
+    {
+      "type": "owner",
+      "value": "mycompany",
+      "directory": "work/mycompany"
+    },
+    {
+      "type": "fork",
+      "value": "true",
+      "directory": "forks"
+    },
+    {
+      "type": "visibility",
+      "value": "private",
+      "directory": "private-projects"
+    }
+  ],
+  "customPaths": {
+    "feralcreative/clone-home": "tools/development",
+    "feralcreative/my-important-project": "priority/current-work",
+    "someorg/legacy-system": "archive/legacy"
+  }
+}

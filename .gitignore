@@ -1,0 +1,91 @@
+# Ignore WordPress backup files (anywhere in project)
+**/*.wpress
+# Ignore macOS system files (anywhere in project)
+**/.DS_Store
+# Ignore archive files (anywhere in project)
+**/_archive
+# Ignore design files (anywhere in project)
+**/*.psd
+**/*.ai
+# Ignore Adobe Premiere project files (anywhere in project)
+**/*.prproj
+**/*.aep
+# Ignore video files (anywhere in project)
+**/*.mp4
+**/*.mov
+**/*.mkv
+# Ignore WordPress core folders (root level only)
+wp-includes/
+wp-admin/
+wp-content/cache/
+wp-content/languages/
+wp-content/plugins/
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Clone Home specific
+**/*.clonehome
+# Whitelist example .clonehome files
+!**/*.example.clonehome
+
+# Ignore WordPress PHP files starting with wp- (anywhere in project)
+**/wp-*.php
+# Ignore the Twenty Twenty theme and its variations (anywhere in project)
+**/wp-content/themes/twenty*/
+# Ignore specific backup files (specific path)
+wp-content/ai1wm-backups/*
+# Ignore XML-RPC file (root level)
+xmlrpc.php
+# Ignore readme and license files (root level)
+readme.html
+license.txt
+# Ignore the main index.php file (root level only)
+/index.php
+# Ignore well-known directory (root level)
+.well-known/
+
+# Debug files (anywhere in project)
+**/console.txt
+
+# Generated CSS (anywhere in project)
+**/*.css
+**/*.css.map

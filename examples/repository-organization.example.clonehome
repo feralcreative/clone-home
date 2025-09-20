@@ -1,0 +1,37 @@
+{
+  "current-projects": [
+    "feralcreative/clone-home",
+    "feralcreative/website-redesign",
+    "mycompany/new-feature"
+  ],
+  "languages/javascript": [
+    "feralcreative/react-app",
+    "feralcreative/node-api",
+    "someorg/express-server"
+  ],
+  "languages/python": [
+    "feralcreative/data-analysis",
+    "feralcreative/ml-project",
+    "university/research-tool"
+  ],
+  "work/clients": [
+    "client1/website",
+    "client2/mobile-app",
+    "client3/dashboard"
+  ],
+  "personal/experiments": [
+    "feralcreative/weekend-project",
+    "feralcreative/learning-rust",
+    "feralcreative/game-prototype"
+  ],
+  "tools": [
+    "feralcreative/dotfiles",
+    "feralcreative/scripts",
+    "feralcreative/automation"
+  ],
+  "archive": [
+    "feralcreative/old-website",
+    "someorg/deprecated-api",
+    "university/thesis-code"
+  ]
+}

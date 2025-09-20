@@ -1,0 +1,44 @@
+{
+  "name": "clone-home",
+  "version": "1.0.0",
+  "description": "An app that clones all your GitHub repositories to set up a machine as if it were Feral Studio",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "clone-home": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "dev": "node --watch src/cli.js",
+    "test": "node --test test/*.test.js",
+    "build-css": "sass web/styles/styles.scss web/styles/styles.css",
+    "watch-css": "sass --watch web/styles/styles.scss:web/styles/styles.css",
+    "build": "npm run build-css"
+  },
+  "keywords": [
+    "github",
+    "clone",
+    "repositories",
+    "setup",
+    "development"
+  ],
+  "author": "Ziad",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "inquirer": "^9.2.12",
+    "simple-git": "^3.20.0",
+    "fs-extra": "^11.1.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

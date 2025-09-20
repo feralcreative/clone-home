@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clone Home - Repository Manager</title>
+    <link rel="stylesheet" href="styles/styles.css?v=5">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Clone Home</h1>
+            <p>Manage and organize all your GitHub repositories</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('setup')">Setup</button>
+            <button class="tab" onclick="showTab('repositories')">Repositories</button>
+            <button class="tab" onclick="showTab('organize')">Organize</button>
+            <button class="tab" onclick="showTab('clone')">Clone</button>
+        </div>
+
+        <!-- Setup Tab -->
+        <div id="setup" class="tab-content active">
+            <div class="card">
+                <h2>Configuration</h2>
+                <div id="setup-form">
+                    <div class="form-group">
+                        <label for="token">GitHub Personal Access Token</label>
+                        <div id="token-env-indicator" class="env-indicator-above" style="display: none;">
+                            <span class="checkmark">✓</span>
+                            <span>Available in .env file</span>
+                        </div>
+                        <input type="password" id="token" placeholder="ghp_..." class="input-with-env">
+                    </div>
+                    <div class="form-group">
+                        <label for="targetDir">Target Directory</label>
+                        <div id="targetDir-env-indicator" class="env-indicator-above" style="display: none;">
+                            <span class="checkmark">✓</span>
+                            <span>Available in .env file</span>
+                        </div>
+                        <input type="text" id="targetDir" value="./repositories" class="input-with-env">
+                    </div>
+                    <div class="form-group">
+                        <div id="includeOrgs-env-indicator" class="env-indicator-above" style="display: none;">
+                            <span class="checkmark">✓</span>
+                            <span>Available in .env file</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="includeOrgs" checked class="styled-checkbox">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Include Organization Repositories</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <div id="includeForks-env-indicator" class="env-indicator-above" style="display: none;">
+                            <span class="checkmark">✓</span>
+                            <span>Available in .env file</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="includeForks" class="styled-checkbox">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Include Forked Repositories</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn" onclick="saveConfig()">Save Configuration</button>
+                        <button class="btn" style="background: #6f42c1;" onclick="exportToEnv()">Export to .env File</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Repositories Tab -->
+        <div id="repositories" class="tab-content">
+            <div class="card">
+                <h2>Your Repositories</h2>
+                <div class="filters">
+                    <input type="text" id="repoFilter" placeholder="Filter repositories..." onkeyup="filterRepositories()">
+                    <select id="languageFilter" onchange="filterRepositories()">
+                        <option value="">All Languages</option>
+                    </select>
+                    <select id="ownerFilter" onchange="filterRepositories()">
+                        <option value="">All Owners</option>
+                    </select>
+                </div>
+                <div id="repo-list" class="repo-list">
+                    <div class="loading">Load repositories from the Setup tab first</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organize Tab -->
+        <div id="organize" class="tab-content">
+            <div class="card">
+                <h2>Repository Organization</h2>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 20px;">
+
+                    <!-- Left side: Config and folder management buttons -->
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="loadConfigFile()">⚙️ Load Config</button>
+                        <button class="btn btn-secondary" onclick="saveConfigFile()">💾 Save Config</button>
+                        <button class="btn btn-secondary" onclick="addNewFolder()">📂 Add Folder</button>
+                    </div>
+
+                    <!-- Right side: Auto-organization options -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <h3 style="margin: 0; color: #58a6ff; font-size: 1rem;">🤖 Auto-Organization Options</h3>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="autoOrganizeByOwner()">👤 By Owner</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByLanguage()">💻 By Language</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByYear()">📅 By Year</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="configFileInput" accept=".clonehome,.json" style="display: none;" onchange="importConfigFile(event)">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; min-height: 600px;">
+
+                    <!-- Unorganized Repositories -->
+                    <div class="organize-panel">
+                        <h3>📋 Unorganized Repositories</h3>
+                        <div class="multi-select-controls" id="multi-select-controls">
+                            <span class="selected-count" id="selected-count">0 selected</span>
+                            <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-secondary" onclick="moveSelectedToFolder()">Move to Folder</button>
+                        </div>
+                        <div id="unorganized-repos" class="repo-drop-zone">
+                            <div class="loading">Load repositories first</div>
+                        </div>
+                    </div>
+
+                    <!-- Organized Structure -->
+                    <div class="organize-panel">
+                        <h3>🗂️ Organization Structure</h3>
+                        <div id="organized-structure" class="folder-structure">
+                            <div class="empty-state">Drag repositories here to organize them</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="stats-grid">
+
+                <!-- Stats will be populated here -->
+            </div>
+            <div class="card">
+                <h2>Repository Statistics</h2>
+                <div id="detailed-stats">
+                    <div class="loading">Load repositories first</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clone Tab -->
+        <div id="clone" class="tab-content">
+            <div class="card">
+                <h2>Clone Repositories</h2>
+                <p>Clone your repositories to the configured directory.</p>
+                <div style="margin: 20px 0;">
+                    <button class="btn btn-secondary" onclick="previewClone()">Preview Clone</button>
+                    <button class="btn" onclick="startClone()">Start Cloning</button>
+                </div>
+                <div id="clone-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

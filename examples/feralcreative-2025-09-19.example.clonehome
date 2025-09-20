@@ -1,0 +1,199 @@
+{
+  "version": "1.0",
+  "created": "2025-09-20T03:46:58.648Z",
+  "organization": {
+    "cb/cb-ops": [
+      "cannonballcreative/cb-ops"
+    ],
+    "fr/clone-home": [
+      "feralcreative/clone-home"
+    ],
+    "vs/visa-emails": [
+      "cannonballcreative/visa-emails"
+    ],
+    "cb/impartner": [
+      "cannonballcreative/impartner"
+    ],
+    "cb/cannonball.qa": [
+      "cannonballcreative/cannonball.qa"
+    ],
+    "cb/cb-microsoft-onboarding": [
+      "cannonballcreative/cb-microsoft-onboarding"
+    ],
+    "cb/repo-template": [
+      "cannonballcreative/repo-template"
+    ],
+    "fr/2pdf": [
+      "feralcreative/2pdf"
+    ],
+    "fr/_vscode": [
+      "feralcreative/_vscode"
+    ],
+    "cb/cb-knowledge-base": [
+      "cannonballcreative/cb-knowledge-base"
+    ],
+    "vs/vs0223a-VCS-emails": [
+      "cannonballcreative/vs0223a-VCS-emails"
+    ],
+    "vs/VS0194b-VCS-Calculator": [
+      "cannonballcreative/VS0194b-VCS-Calculator"
+    ],
+    "vs/vs0123b-vlp-quiz": [
+      "cannonballcreative/vs0123b-vlp-quiz"
+    ],
+    "vs/vs-annual-report-2024": [
+      "cannonballcreative/vs-annual-report-2024"
+    ],
+    "vs/VOL-VSH-Walkthrough-App": [
+      "cannonballcreative/VOL-VSH-Walkthrough-App"
+    ],
+    "vs/visa.pen.hub.cnbl.io": [
+      "cannonballcreative/visa.pen.hub.cnbl.io"
+    ],
+    "vs/visa-roi-calc": [
+      "cannonballcreative/visa-roi-calc"
+    ],
+    "vs/visa-rem-calc-global": [
+      "cannonballcreative/visa-rem-calc-global"
+    ],
+    "vs/visa_compass": [
+      "cannonballcreative/visa_compass"
+    ],
+    "vs/vdpp.visa.com": [
+      "cannonballcreative/vdpp.visa.com"
+    ],
+    "vs/apec_video_app": [
+      "cannonballcreative/apec_video_app"
+    ],
+    "fr/donnellanforjudge.com": [
+      "feralcreative/donnellanforjudge.com"
+    ],
+    "ze/obZIADian": [
+      "feralcreative/obZIADian"
+    ],
+    "misc/wpcbcn.org": [
+      "feralcreative/wpcbcn.org"
+    ],
+    "ze/email-signatures": [
+      "feralcreative/email-signatures"
+    ],
+    "cb/cannonball-website": [
+      "cannonballcreative/cannonball-website"
+    ],
+    "cb/json-derulo": [
+      "cannonballcreative/json-derulo"
+    ],
+    "cb/cb-research-scraper": [
+      "cannonballcreative/cb-research-scraper"
+    ],
+    "cb/cb-google-sheets": [
+      "cannonballcreative/cb-google-sheets"
+    ],
+    "cb/hubspot-clickup-sync": [
+      "cannonballcreative/hubspot-clickup-sync"
+    ],
+    "cb/sheets-to-clickup": [
+      "cannonballcreative/sheets-to-clickup"
+    ],
+    "cb/ethovox-2024": [
+      "cannonballcreative/ethovox-2024"
+    ],
+    "cb/work.cnbl.io": [
+      "cannonballcreative/work.cnbl.io"
+    ],
+    "fr/dropbox-shortcuts": [
+      "feralcreative/dropbox-shortcuts"
+    ],
+    "fr/chatzoe": [
+      "feralcreative/chatzoe"
+    ],
+    "fr/paulaustinardoin.com": [
+      "feralcreative/paulaustinardoin.com"
+    ],
+    "fr/image-convert": [
+      "feralcreative/image-convert"
+    ],
+    "fr/imageoptim-ize": [
+      "feralcreative/imageoptim-ize"
+    ],
+    "fr/_browsersync": [
+      "feralcreative/_browsersync"
+    ],
+    "fr/paperback-writer": [
+      "feralcreative/paperback-writer"
+    ],
+    "fr/summitwealthstrategies.com": [
+      "feralcreative/summitwealthstrategies.com"
+    ],
+    "fr/vampiresmc.com": [
+      "feralcreative/vampiresmc.com"
+    ],
+    "fr/rebeccahobbs.net": [
+      "feralcreative/rebeccahobbs.net"
+    ],
+    "fr/feralcreative.dev": [
+      "feralcreative/feralcreative.dev"
+    ],
+    "fr/feralcreative.co": [
+      "feralcreative/feralcreative.co"
+    ],
+    "fr/feral.ly": [
+      "feralcreative/feral.ly"
+    ],
+    "fr/multisite": [
+      "feralcreative/multisite"
+    ],
+    "fr/alextanguay.com": [
+      "feralcreative/alextanguay.com"
+    ],
+    "fr/feralcreative.harvestapp.com": [
+      "feralcreative/feralcreative.harvestapp.com"
+    ],
+    "fr/ai": [
+      "feralcreative/ai"
+    ],
+    "fr/feral-sandbox": [
+      "feralcreative/feral-sandbox"
+    ],
+    "fr/sanitize-filenames": [
+      "feralcreative/sanitize-filenames"
+    ],
+    "fr/feral-dummy": [
+      "feralcreative/feral-dummy"
+    ],
+    "fr/template": [
+      "feralcreative/template"
+    ],
+    "fr/househunt": [
+      "feralcreative/househunt"
+    ],
+    "fr/fuckjimcarrey.com": [
+      "feralcreative/fuckjimcarrey.com"
+    ],
+    "fr/moto-rooter": [
+      "feralcreative/moto-rooter"
+    ],
+    "fr/travel.ezzat.com": [
+      "feralcreative/travel.ezzat.com"
+    ],
+    "fr/ziad.ezzat.com": [
+      "feralcreative/ziad.ezzat.com"
+    ],
+    "fr/moto.ezzat.com": [
+      "feralcreative/moto.ezzat.com"
+    ],
+    "fr/plex": [
+      "feralcreative/plex"
+    ],
+    "fr/didthegiantswintheworldseries.com": [
+      "feralcreative/didthegiantswintheworldseries.com"
+    ],
+    "fr/ziad-af": [
+      "feralcreative/ziad-af"
+    ]
+  },
+  "metadata": {
+    "totalFolders": 63,
+    "totalOrganizedRepos": 63
+  }
+}
