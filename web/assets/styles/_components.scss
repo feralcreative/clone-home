@@ -1,0 +1,209 @@
+// Component styles
+@use "variables" as *;
+
+// Buttons with proper contrast using color-specific text variables
+.btn {
+  padding: 0.5em 1em;
+  background: $accent-success;
+  color: $accent-success-text;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $accent-success-hover;
+    color: $accent-success-hover-text; // Use hover text variable
+  }
+
+  &-secondary {
+    background: $accent-secondary;
+    color: $accent-secondary-text; // Use color-specific text variable
+
+    &:hover {
+      background: $accent-secondary-hover;
+      color: $accent-secondary-hover-text; // Use hover text variable
+    }
+  }
+
+  &-danger {
+    background: $accent-danger;
+    color: $accent-danger-text; // Use color-specific text variable
+
+    &:hover {
+      background: $accent-danger-hover;
+      color: $accent-danger-hover-text; // Use hover text variable
+    }
+  }
+
+  &-warning {
+    background: $accent-warning;
+    color: $accent-warning-text; // Use color-specific text variable
+
+    &:hover {
+      background: $accent-warning-hover;
+      color: $accent-warning-hover-text; // Use hover text variable
+    }
+  }
+
+  &-primary {
+    background: $accent-primary;
+    color: $accent-primary-text; // Use color-specific text variable
+
+    &:hover {
+      background: $accent-primary-hover;
+      color: $accent-primary-hover-text; // Use hover text variable
+    }
+  }
+}
+
+// Repository badges
+.badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.585rem;
+  font-weight: 400;
+
+  &-private {
+    background: #{$accent-warning}22;
+    color: $accent-warning;
+  }
+
+  &-public {
+    background: $accent-success;
+    color: $accent-success-text; // Use color-specific text variable
+  }
+
+  &-language {
+    background: $border-color;
+    color: $text-primary;
+  }
+}
+
+// Status messages
+.error {
+  background: #{$accent-danger}22;
+  border: 1px solid $accent-danger;
+  color: $danger-text;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.success {
+  background: #{$accent-success}22;
+  border: 1px solid $accent-success;
+  color: $success-text;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+// Environment indicators - positioned above fields with no border
+.env-indicator-above {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: $accent-success;
+  background: transparent; // No background
+  padding: 4px 0; // Minimal padding
+  margin-bottom: 6px; // Reduced to match text field spacing exactly
+  border: none; // No border on indicator
+
+  .checkmark {
+    color: $accent-success;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+// Environment indicator positioned to the right of inputs
+.env-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: $accent-success;
+  background: #{$accent-success}15;
+  padding: 6px 12px;
+  border-radius: 6px;
+  z-index: 10;
+  border: 2px solid $accent-success;
+  box-shadow: 0 2px 8px #{$accent-success}30;
+
+  .checkmark {
+    color: $accent-success;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  // Pulsing animation
+  &.pulse {
+    animation: env-pulse 2s ease-in-out infinite;
+  }
+
+  &:hover {
+    background: #{$accent-success}25;
+    box-shadow: 0 2px 12px #{$accent-success}50;
+  }
+}
+
+// Folder count badge
+.folder-count {
+  background: $accent-primary;
+  color: $accent-primary-text; // Use color-specific text variable
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+}
+
+// Remove button
+.remove-btn {
+  background: $accent-danger;
+  color: $accent-danger-text; // Use color-specific text variable
+  border: none;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+// Delete folder button
+.delete-folder-btn {
+  background: $accent-danger;
+  color: $accent-danger-text;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-icons {
+    font-size: 1em;
+    margin: 0;
+  }
+
+  &:hover {
+    background: $accent-danger-hover;
+    color: $accent-danger-hover-text;
+  }
+}

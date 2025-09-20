@@ -41,7 +41,7 @@ clone-home/
 ├── test/                  # Test files
 │   └── *.test.js          # Test suites
 ├── docs/                  # Documentation
-├── examples/              # Example configurations
+├── configs/               # Example configurations
 └── package.json           # Project configuration
 ```
 
@@ -300,5 +300,5 @@ npm start web
 - **[Main README](../README.md)** - Project overview and quick start
 - **[Web Interface Guide](web-interface.md)** - Visual drag-and-drop interface
 - **[CLI Guide](cli-guide.md)** - Command-line interface documentation
-- **[Usage Examples](../examples/README.md)** - Comprehensive examples and workflows
+- **[Usage Examples](../configs/README.md)** - Comprehensive examples and workflows
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions

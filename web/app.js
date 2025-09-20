@@ -3,6 +3,34 @@ let filteredRepositories = [];
 let organizationConfig = {};
 let draggedRepo = null;
 let selectedRepos = new Set();
+let envStatusEventSource = null;
+
+// Helper function to format date as YYYY-MM-DD
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toISOString().split("T")[0];
+}
+
+// Helper function to clean up event listeners to prevent memory leaks
+function cleanupEventListeners(container) {
+  // Clone and replace container to remove all event listeners
+  const newContainer = container.cloneNode(true);
+  container.parentNode.replaceChild(newContainer, container);
+  return newContainer;
+}
+
+// Debounce function to improve performance
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 // Tab Management
 function showTab(tabName) {
@@ -111,8 +139,9 @@ function showEnvIndicators(envConfig) {
     tokenInput.classList.add("has-env-value"); // This will add the green border
     tokenInput.placeholder = "Override .env value or leave empty to use .env";
     tokenInput.value = ""; // Allow override
-    tokenIndicator.style.display = "flex"; // Show indicator above field
-    tokenIndicator.innerHTML = '<span class="checkmark">✓</span><span>Available in .env file</span>';
+    tokenIndicator.classList.add("env-indicator-visible");
+    tokenIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
   }
 
   // Target Directory indicator
@@ -121,8 +150,9 @@ function showEnvIndicators(envConfig) {
     const targetDirIndicator = document.getElementById("targetDir-env-indicator");
 
     targetDirInput.classList.add("has-env-value"); // This will add the green border
-    targetDirIndicator.style.display = "flex"; // Show indicator above field
-    targetDirIndicator.innerHTML = '<span class="checkmark">✓</span><span>Available in .env file</span>';
+    targetDirIndicator.classList.add("env-indicator-visible");
+    targetDirIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
   }
 
   // Include Orgs indicator (if set via env)
@@ -131,8 +161,9 @@ function showEnvIndicators(envConfig) {
     const includeOrgsIndicator = document.getElementById("includeOrgs-env-indicator");
 
     includeOrgsInput.classList.add("has-env-value"); // This will add the green highlight
-    includeOrgsIndicator.style.display = "flex"; // Show indicator above checkbox
-    includeOrgsIndicator.innerHTML = '<span class="checkmark">✓</span><span>Available in .env file</span>';
+    includeOrgsIndicator.classList.add("env-indicator-visible");
+    includeOrgsIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
   }
 
   // Include Forks indicator (if set via env)
@@ -141,8 +172,9 @@ function showEnvIndicators(envConfig) {
     const includeForksIndicator = document.getElementById("includeForks-env-indicator");
 
     includeForksInput.classList.add("has-env-value"); // This will add the green highlight
-    includeForksIndicator.style.display = "flex"; // Show indicator above checkbox
-    includeForksIndicator.innerHTML = '<span class="checkmark">✓</span><span>Available in .env file</span>';
+    includeForksIndicator.classList.add("env-indicator-visible");
+    includeForksIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
   }
 }
 
@@ -191,10 +223,48 @@ INCLUDE_FORKS=${includeForks}
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
 
-    showSuccess("✅ .env file exported successfully! Place it in your Clone Home directory.");
+    showSuccess("✓ .env file exported successfully! Place it in your Clone Home directory.");
   } catch (error) {
     console.error("Export error:", error);
     showError("Failed to export .env file: " + error.message);
+  }
+}
+
+// Clear organization structure with confirmation
+function clearOrganizationStructure() {
+  const hasOrganizedRepos = Object.keys(folderStructure).length > 0;
+
+  if (!hasOrganizedRepos) {
+    showError("No organized repositories to clear");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Are you sure you want to clear all organized repositories?\n\n" +
+      "This will move all repositories back to the unorganized list. " +
+      "This action cannot be undone."
+  );
+
+  if (confirmed) {
+    // Move all organized repos back to unorganized
+    Object.keys(folderStructure).forEach((folderPath) => {
+      const repos = folderStructure[folderPath];
+      repos.forEach((repo) => {
+        // Add back to unorganized list if not already there
+        if (!unorganizedRepos.includes(repo)) {
+          unorganizedRepos.push(repo);
+        }
+      });
+    });
+
+    // Clear the folder structure
+    folderStructure = {};
+
+    // Update displays
+    updateUnorganizedRepos();
+    updateOrganizedStructure();
+
+    showSuccess("Organization structure cleared. All repositories moved to unorganized list.");
   }
 }
 
@@ -237,10 +307,14 @@ function displayRepositories() {
                 <p>${repo.description || "No description"}</p>
                 <div class="repo-meta">
                     <span class="badge ${repo.private ? "badge-private" : "badge-public"}">
-                        ${repo.private ? "🔒 Private" : "🌍 Public"}
+                        ${
+                          repo.private
+                            ? '<span class="material-icons">lock</span>Private'
+                            : '<span class="material-icons">public</span>Public'
+                        }
                     </span>
                     ${repo.language ? `<span class="badge badge-language">${repo.language}</span>` : ""}
-                    <span>Updated: ${new Date(repo.updated_at).toLocaleDateString()}</span>
+                    <span>Updated: ${formatDate(repo.updated_at)}</span>
                 </div>
             </div>
         </div>
@@ -284,6 +358,9 @@ function filterRepositories() {
 
   displayRepositories();
 }
+
+// Debounced version for better performance
+const debouncedFilterRepositories = debounce(filterRepositories, 300);
 
 // Statistics
 async function loadStats() {
@@ -334,13 +411,13 @@ function displayStats(stats) {
 
   const detailedStats = document.getElementById("detailed-stats");
   detailedStats.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+        <div class="stats-grid-layout">
             <div>
                 <h3>Top Languages</h3>
                 ${topLanguages
                   .map(
                     ([lang, count]) => `
-                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d;">
+                    <div class="stat-item">
                         <span>${lang}</span>
                         <span>${count}</span>
                     </div>
@@ -353,7 +430,7 @@ function displayStats(stats) {
                 ${topOwners
                   .map(
                     ([owner, count]) => `
-                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d;">
+                    <div class="stat-item">
                         <span>${owner}</span>
                         <span>${count}</span>
                     </div>
@@ -384,13 +461,17 @@ async function previewClone() {
                 <div class="success">
                     <h3>Clone Preview</h3>
                     <p>${result.message}</p>
-                    <div style="max-height: 300px; overflow-y: auto; margin-top: 16px;">
+                    <div class="clone-preview-container">
                         ${result.repositories
                           .map(
                             (repo) => `
-                            <div style="padding: 8px; border-bottom: 1px solid #30363d;">
-                                <strong>${repo.name}</strong> ${repo.private ? "🔒" : "🌍"}
-                                ${repo.language ? `<span style="color: #8b949e;"> • ${repo.language}</span>` : ""}
+                            <div class="clone-preview-item">
+                                <strong>${repo.name}</strong> ${
+                              repo.private
+                                ? '<span class="material-icons repo-icon-small">lock</span>'
+                                : '<span class="material-icons repo-icon-small">public</span>'
+                            }
+                                ${repo.language ? `<span class="language-meta"> • ${repo.language}</span>` : ""}
                             </div>
                         `
                           )
@@ -426,7 +507,7 @@ async function startClone() {
 
     // Display results
     let html = `
-      <div class="success" style="margin-bottom: 20px;">
+      <div class="success success-margin">
         <h3>${data.message || "Clone operation completed"}</h3>
         ${
           data.summary
@@ -439,14 +520,12 @@ async function startClone() {
     if (data.results && data.results.length > 0) {
       html += '<div class="clone-results-list">';
       data.results.forEach((result) => {
-        const statusClass = result.status === "success" ? "success" : "error";
+        const statusClass = result.status === "success" ? "clone-result-success" : "clone-result-error";
         html += `
-          <div class="clone-result ${statusClass}" style="margin: 8px 0; padding: 8px; border-radius: 4px; background: ${
-          result.status === "success" ? "#0d4429" : "#442c2c"
-        };">
+          <div class="clone-result ${statusClass}">
             <strong>${result.name}</strong>
-            <div style="font-size: 0.9rem; margin-top: 4px;">${result.message}</div>
-            ${result.path ? `<div style="font-size: 0.8rem; color: #8b949e;">→ ${result.path}</div>` : ""}
+            <div class="clone-result-message">${result.message}</div>
+            ${result.path ? `<div class="clone-result-path">→ ${result.path}</div>` : ""}
           </div>
         `;
       });
@@ -536,6 +615,10 @@ function initializeOrganizer() {
 
 function displayUnorganizedRepos() {
   const container = document.getElementById("unorganized-repos");
+
+  // Clean up existing event listeners to prevent memory leaks
+  cleanupEventListeners(container);
+
   const unorganizedRepos = repositories.filter((repo) => !isRepoOrganized(repo));
 
   if (unorganizedRepos.length === 0) {
@@ -551,15 +634,23 @@ function displayUnorganizedRepos() {
              draggable="true"
              data-repo="${repo.full_name}"
              onclick="toggleRepoSelection('${repo.full_name}', event)">
-            <input type="checkbox"
-                   class="selection-checkbox"
-                   ${selectedRepos.has(repo.full_name) ? "checked" : ""}
-                   onclick="event.stopPropagation(); toggleRepoSelection('${repo.full_name}', event)">
-            <div class="repo-name">${repo.full_name}</div>
-            <div class="repo-meta">
-                ${repo.private ? "🔒" : "🌍"}${repo.language ? ` • ${repo.language}` : ""} • ${new Date(
-        repo.updated_at
-      ).toLocaleDateString()}
+            <label class="checkbox-label" onclick="event.stopPropagation(); toggleRepoSelection('${
+              repo.full_name
+            }', event)">
+                <input type="checkbox"
+                       class="styled-checkbox selection-checkbox"
+                       ${selectedRepos.has(repo.full_name) ? "checked" : ""}>
+                <span class="checkbox-custom"></span>
+            </label>
+            <div class="repo-content">
+                <div class="repo-name">${repo.full_name}</div>
+                <div class="repo-meta">
+                    ${
+                      repo.private
+                        ? '<span class="material-icons repo-icon-small">lock</span>'
+                        : '<span class="material-icons repo-icon-small">public</span>'
+                    }${repo.language ? ` • ${repo.language}` : ""} • ${formatDate(repo.updated_at)}
+                </div>
             </div>
         </div>
     `
@@ -613,10 +704,10 @@ function displayOrganizedStructure() {
       return `
         <div class="folder">
             <div class="folder-header" onclick="toggleFolder('${parentName}')">
-                <span class="folder-name">📁 ${parentName}</span>
+                <span class="folder-name"><span class="material-icons">folder</span>${parentName}</span>
                 <div>
                     <span class="folder-count">${totalRepos}</span>
-                    <button class="delete-folder-btn" onclick="deleteParentFolder('${parentName}')" style="margin-left: 8px;">🗑️</button>
+                    <button class="delete-folder-btn" onclick="deleteParentFolder('${parentName}')"><span class="material-icons">delete</span></button>
                 </div>
             </div>
             <div class="folder-content" data-folder="${parentName}">
@@ -646,14 +737,14 @@ function displayOrganizedStructure() {
                         .join("");
                     } else if (childName === "_placeholder") {
                       // Empty parent folder placeholder
-                      return `<div class="empty-state" style="margin: 8px 0; font-size: 0.9rem;">Drop repositories here</div>`;
+                      return `<div class="empty-folder-placeholder">Drop repositories here</div>`;
                     } else {
                       // Child folder
                       const fullPath = `${parentName}/${childName}`;
                       return `
                       <div class="child-folder">
                           <div class="child-folder-header">
-                              <span class="folder-name">📂 ${childName}</span>
+                              <span class="folder-name"><span class="material-icons">folder_open</span>${childName}</span>
                               <span class="folder-count">${sortedRepos.length}</span>
                           </div>
                           ${sortedRepos
@@ -874,15 +965,13 @@ function handleDropOnStructure(e) {
 
   console.log("handleDropOnStructure called:", { target: e.target, reposToMove });
 
-  // Only create misc folder if we're actually dropping on empty space
+  // Only create folder if we're actually dropping on empty space
   // Check if we're dropping on the main container, not inside a folder
   if (e.target.id === "organized-structure" || e.target.classList.contains("empty-state")) {
-    // Create a default "misc" parent folder when dropping on empty space
-    const defaultParentFolder = "misc";
-
+    // Create a folder named after the repository itself when dropping on empty space
     reposToMove.forEach((repoName) => {
-      const repoFolderName = repoName.split("/").pop();
-      const fullPath = `${defaultParentFolder}/${repoFolderName}`;
+      const repoFolderName = repoName.split("/").pop(); // Get just the repo name
+      const fullPath = repoFolderName; // Use repo name as the folder name in root
       addRepoToFolder(fullPath, repoName);
     });
 
@@ -1209,7 +1298,128 @@ function autoOrganizeByYear() {
   showSuccess(`Auto-organized ${organizedCount} repositories by year!`);
 }
 
+// Setup real-time env file monitoring
+function setupEnvStatusMonitoring() {
+  if (envStatusEventSource) {
+    envStatusEventSource.close();
+  }
+
+  // Use relative URL to automatically use the correct port
+  const eventSourceUrl = "/api/env-status";
+  console.log(`Setting up EventSource connection to: ${window.location.origin}${eventSourceUrl}`);
+
+  envStatusEventSource = new EventSource(eventSourceUrl);
+
+  envStatusEventSource.onmessage = function (event) {
+    try {
+      const envStatus = JSON.parse(event.data);
+      updateEnvIndicators(envStatus);
+    } catch (error) {
+      console.error("Error parsing env status:", error);
+    }
+  };
+
+  envStatusEventSource.onerror = function (error) {
+    console.error("EventSource failed:", error);
+    console.error("Make sure you're accessing the correct URL: http://localhost:3847");
+    console.error(
+      "If you're seeing 404 errors for /api/env-status, check that the server is running on the correct port"
+    );
+
+    // Don't auto-reconnect on 404 errors to avoid spam
+    if (envStatusEventSource.readyState === EventSource.CLOSED) {
+      console.error("EventSource connection closed. Manual refresh may be required.");
+      return;
+    }
+
+    // Attempt to reconnect after 5 seconds for other errors
+    setTimeout(() => {
+      setupEnvStatusMonitoring();
+    }, 5000);
+  };
+}
+
+function updateEnvIndicators(envStatus) {
+  // Update token indicator
+  const tokenInput = document.getElementById("token");
+  const tokenIndicator = document.getElementById("token-env-indicator");
+
+  if (envStatus.hasToken) {
+    tokenInput.classList.add("has-env-value");
+    tokenInput.placeholder = "Override .env value or leave empty to use .env";
+    tokenInput.value = "";
+    tokenIndicator.classList.add("env-indicator-visible");
+    tokenIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
+  } else {
+    tokenInput.classList.remove("has-env-value");
+    tokenInput.placeholder = "Enter your GitHub personal access token";
+    tokenIndicator.classList.remove("env-indicator-visible");
+  }
+
+  // Update target directory indicator
+  const targetDirInput = document.getElementById("targetDir");
+  const targetDirIndicator = document.getElementById("targetDir-env-indicator");
+
+  if (envStatus.hasTargetDir) {
+    targetDirInput.classList.add("has-env-value");
+    targetDirIndicator.classList.add("env-indicator-visible");
+    targetDirIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
+  } else {
+    targetDirInput.classList.remove("has-env-value");
+    targetDirIndicator.classList.remove("env-indicator-visible");
+  }
+
+  // Update include orgs indicator
+  const includeOrgsInput = document.getElementById("includeOrgs");
+  const includeOrgsIndicator = document.getElementById("includeOrgs-env-indicator");
+
+  if (envStatus.hasIncludeOrgs) {
+    includeOrgsInput.classList.add("has-env-value");
+    includeOrgsIndicator.classList.add("env-indicator-visible");
+    includeOrgsIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
+  } else {
+    includeOrgsInput.classList.remove("has-env-value");
+    includeOrgsIndicator.classList.remove("env-indicator-visible");
+  }
+
+  // Update include forks indicator
+  const includeForksInput = document.getElementById("includeForks");
+  const includeForksIndicator = document.getElementById("includeForks-env-indicator");
+
+  if (envStatus.hasIncludeForks) {
+    includeForksInput.classList.add("has-env-value");
+    includeForksIndicator.classList.add("env-indicator-visible");
+    includeForksIndicator.innerHTML =
+      '<span class="material-icons checkmark">check_circle</span><span>Available in .env file</span>';
+  } else {
+    includeForksInput.classList.remove("has-env-value");
+    includeForksIndicator.classList.remove("env-indicator-visible");
+  }
+}
+
+// Memory monitoring function
+function logMemoryUsage() {
+  if (performance.memory) {
+    const memory = performance.memory;
+    console.log(`Memory Usage:
+      Used: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB
+      Total: ${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)} MB
+      Limit: ${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)} MB
+      Repositories in memory: ${repositories.length}
+      Organization folders: ${Object.keys(organizationConfig).length}`);
+  }
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
   loadConfig();
+  setupEnvStatusMonitoring();
+
+  // Log memory usage periodically in development
+  if (window.location.hostname === "localhost") {
+    setInterval(logMemoryUsage, 30000); // Every 30 seconds
+  }
 });

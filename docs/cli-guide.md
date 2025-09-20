@@ -130,7 +130,7 @@ repositories/
 
 You can create custom directory structures using two methods:
 
-#### 1. Directory Tree Rules (`directory-tree.json`)
+#### 1. Rules-Based Organization (`directory-tree.json`)
 
 Create rules that automatically organize repositories based on criteria:
 
@@ -156,7 +156,7 @@ Create rules that automatically organize repositories based on criteria:
 }
 ```
 
-#### 2. Repository Organization (`repository-organization.json`)
+#### 2. Manual Folder Organization (`repository-organization.json`)
 
 Manually specify where each repository should go:
 
@@ -304,6 +304,6 @@ clone-home organize
 
 - **[Main README](../README.md)** - Project overview and quick start
 - **[Web Interface Guide](web-interface.md)** - Visual drag-and-drop interface
-- **[Usage Examples](../examples/README.md)** - Comprehensive examples and workflows
+- **[Usage Examples](../configs/README.md)** - Comprehensive examples and workflows
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 - **[Development Guide](development.md)** - Contributing and development setup

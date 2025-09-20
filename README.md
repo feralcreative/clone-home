@@ -8,9 +8,15 @@ A powerful GitHub repository management tool with both web interface and CLI. Cl
 - **🖥️ Command Line**: Powerful CLI with filtering, dry-run, and automation
 - **🤖 Auto-Organization**: One-click organization by owner, language, or year
 - **💾 Configuration Management**: Save and share repository organization setups
-- **� Smart Filtering**: Advanced search and filtering capabilities
+- **🔍 Smart Filtering**: Advanced search and filtering capabilities
 - **⚡ One-Click Cloning**: Clone all repositories with a single command
 - **🛡️ Safe Operations**: Preview mode and safety checks prevent accidents
+- **🔄 Real-time Updates**: Automatic .env file monitoring without server restart
+- **⚡ Performance Optimized**: Memory-efficient with optimized operations
+
+## 📸 Screenshot
+
+![Clone Home Web Interface](web/assets/images/screenshot.png)
 
 ## 🚀 Quick Start
 
@@ -21,7 +27,7 @@ npm install
 npm start web
 ```
 
-Open `http://localhost:3000` and follow the Setup → Organize → Clone workflow.
+Open `http://localhost:3847` and follow the Setup → Organize → Clone workflow.
 
 ### Command Line
 
@@ -50,14 +56,15 @@ Configuration is stored in `~/.clone-home/config.json`
 ## 📚 Documentation
 
 - **[Web Interface Guide](docs/web-interface.md)** - Complete guide to using the drag-and-drop web interface
-- **[Command Line Guide](docs/cli-guide.md)** - Detailed CLI usage, commands, and examples
+- **[Command Line Guide](docs/cli-guide.md)** - Detailed CLI usage, commands, and configs
+- **[Performance Analysis](docs/performance-analysis.md)** - Memory usage and optimization details
 - **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
 - **[Development Guide](docs/development.md)** - Development setup and contribution guidelines
-- **[Usage Examples & Configuration](examples/README.md)** - Comprehensive examples, workflows, and configuration files
+- **[Usage Examples & Configuration](configs/README.md)** - Comprehensive examples, workflows, and configuration files
 
 ## 🌐 Web Interface
 
-Start the web interface: `npm start web` → Open `http://localhost:3000`
+Start the web interface: `npm start web` → Open `http://localhost:3847`
 
 **Features**: Setup → Browse Repositories → Organize with Drag & Drop → Clone
 

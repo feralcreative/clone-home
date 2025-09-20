@@ -1,48 +1,7 @@
-// Variables
-$bg-primary: #0d1117;
-$bg-secondary: #161b22;
-$bg-tertiary: #21262d;
-$border-color: #30363d;
-$text-primary: #e6edf3;
-$text-secondary: #8b949e;
-$btn-text-dark: #000000;
-$btn-text-light: #ffffff;
-
-// Bright rainbow color palette - organized by color with all related variables grouped together
-
-// Primary Blue - links, active states, highlights, focus borders
-$accent-primary: #0080ff; // Bright Electric Blue
-$accent-primary-text: $btn-text-dark; // White text on blue background
-$accent-primary-hover: #0066cc; // Darker Electric Blue for hover states
-$accent-primary-hover-text: $btn-text-light; // White text on blue hover background
-
-// Success Green - success states, primary buttons, positive indicators
-$accent-success: #00cc66; // Darker Spring Green for better contrast
-$accent-success-text: $btn-text-dark; // Dark text on green background for better contrast
-$accent-success-hover: #00aa55; // Even darker Spring Green for hover states
-$accent-success-hover-text: $btn-text-dark; // Dark text on green hover background
-
-// Danger Red - error states, danger buttons, delete actions
-$accent-danger: #ff4040; // Bright Red
-$accent-danger-text: $btn-text-dark; // White text on red background
-$accent-danger-hover: #cc3333; // Darker Red for hover states
-$accent-danger-hover-text: $btn-text-light; // White text on red hover background
-
-// Secondary Purple - secondary buttons, alternative actions
-$accent-secondary: #8040ff; // Bright Purple
-$accent-secondary-text: $btn-text-light; // White text on purple background
-$accent-secondary-hover: #6633cc; // Darker Purple for hover states
-$accent-secondary-hover-text: $btn-text-light; // White text on purple hover background
-
-// Warning Yellow - warning states, private repository badges, caution indicators
-$accent-warning: #ffcc00; // Darker Yellow for better contrast with dark text
-$accent-warning-text: $btn-text-dark; // Dark text on yellow background
-$accent-warning-hover: #e6b800; // Even darker Yellow for hover states
-$accent-warning-hover-text: $btn-text-dark; // Dark text on yellow hover background
-
-// Legacy text colors for status messages (using the main colors for better contrast)
-$success-text: $accent-success; // Text color for success messages
-$danger-text: $accent-danger; // Text color for error messages
+// Import partials
+@use "variables" as *;
+@use "mixins" as *;
+@use "components" as *;
 
 // Base styles
 * {
@@ -52,10 +11,29 @@ $danger-text: $accent-danger; // Text color for error messages
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: $bg-primary;
   color: $text-primary;
   line-height: 1.6;
+}
+
+// Typography - Use Scope One for all headings
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Scope One", Georgia, serif;
+  font-weight: 400;
+}
+
+// Logo styling
+.logo {
+  height: 1.2em;
+  width: auto;
+  margin-right: 0.5em;
+  vertical-align: middle;
 }
 
 // Links with proper contrast
@@ -65,7 +43,7 @@ a {
   transition: color 0.2s ease;
 
   &:hover {
-    color: $accent-primary-hover;
+    color: $accent-primary-hover-text;
     text-decoration: underline;
   }
 
@@ -86,8 +64,9 @@ a {
   margin-bottom: 40px;
 
   h1 {
+    font-family: "Scope One", Georgia, serif;
     font-size: 2.5rem;
-    font-weight: 300; // Light weight for big headlines
+    font-weight: 400; // Scope One is naturally bold
     margin-bottom: 10px;
     background: linear-gradient(45deg, $accent-primary, $accent-primary-hover);
     -webkit-background-clip: text;
@@ -109,13 +88,15 @@ a {
 }
 
 .tab {
-  padding: 12px 24px;
+  padding: 16px 32px;
   background: none;
   border: none;
   color: $text-secondary;
   cursor: pointer;
-  font-size: 1rem;
-  border-bottom: 2px solid transparent;
+  font-family: "Scope One", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  border-bottom: 3px solid transparent;
   transition: all 0.2s;
 
   &.active {
@@ -189,9 +170,9 @@ a {
   font-weight: 500;
   color: $accent-success;
   background: transparent; // No background
-  padding: 4px 0; // Minimal padding
-  margin-bottom: 8px; // Consistent space between indicator and field/checkbox
-  border: none; // No border on indicator
+  padding: 0; // Minimal padding
+  margin-bottom: 0.5em; // Consistent space between indicator and field/checkbox
+  // border: none; // No border on indicator
 
   .checkmark {
     color: $accent-success;
@@ -203,21 +184,26 @@ a {
 // Input fields with env values get green border
 .input-with-env {
   &.has-env-value {
-    border: 2px solid $accent-success !important; // Green border on the field itself
-    box-shadow: 0 0 0 3px #{$accent-success}20; // Subtle glow
-    padding-right: 12px; // Reset padding since no indicator inside
+    border: 1px solid $accent-success !important;
+    box-shadow: 0 0 0 2px #{$accent-success}20;
+    padding-right: 12px;
   }
 }
 
 // Custom styled checkboxes
 .checkbox-label {
   display: flex;
-  align-items: center; // This centers the checkbox with the text vertically
+  flex-direction: row; // Ensure horizontal layout (checkbox then text)
+  align-items: center !important; // This centers the checkbox with the text vertically
   cursor: pointer;
   font-size: 1rem;
-  gap: 24px; // Increased gap (~1.5em) for more comfortable spacing between checkbox and label
-  padding: 12px 0; // Increased padding for better touch targets
+  gap: 0.5em; // Exactly 0.5em spacing between checkbox and label as requested
+  padding: 0; // Increased padding for better touch targets
   transition: all 0.2s ease;
+  .checkbox-text {
+    align-self: center;
+    line-height: 1em;
+  }
 
   &:hover {
     .checkbox-custom {
@@ -248,7 +234,9 @@ a {
     transition: all 0.3s ease;
     flex-shrink: 0;
     display: inline-block; // Ensure it displays as a block
-
+    line-height: 1em;
+    vertical-align: middle;
+    margin-right: 0.4em;
     // Checkmark - properly centered
     &::after {
       content: "";
@@ -277,8 +265,8 @@ a {
 
   // When checkbox has env value (highlighted state)
   .styled-checkbox.has-env-value ~ .checkbox-custom {
-    border: 2px solid $accent-success;
-    box-shadow: 0 0 0 3px #{$accent-success}20;
+    border: 1px solid $accent-success;
+    box-shadow: 0 0 0 2px #{$accent-success}20;
     background: #{$accent-success}10;
   }
 
@@ -299,10 +287,8 @@ a {
     font-weight: 400;
     color: $text-primary;
     user-select: none;
-    display: flex;
-    align-items: center; // Center the text vertically with the checkbox
-    min-height: 24px; // Match the checkbox height for perfect vertical alignment
-    line-height: 1.2; // Tighter line height for better alignment
+    line-height: 24px; // Match checkbox height for vertical centering
+    flex: 1; // Take remaining space in the flex container
   }
 }
 
@@ -330,7 +316,7 @@ a {
   font-weight: 500;
   color: $accent-success;
   background: #{$accent-success}15;
-  padding: 6px 12px;
+  // padding: 6px 12px;
   border-radius: 6px;
   z-index: 10;
   border: 2px solid $accent-success;
@@ -355,59 +341,6 @@ a {
   }
 }
 
-// Buttons with proper contrast using color-specific text variables
-.btn {
-  padding: 0.5em 1em;
-  background: $accent-success;
-  color: $accent-success-text; // Use color-specific text variable
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500; // Slightly bolder for better readability
-  transition: all 0.2s;
-
-  &:hover {
-    background: $accent-success-hover;
-  }
-
-  &-secondary {
-    background: $accent-secondary;
-    color: $accent-secondary-text; // Use color-specific text variable
-
-    &:hover {
-      background: $accent-secondary-hover;
-    }
-  }
-
-  &-danger {
-    background: $accent-danger;
-    color: $accent-danger-text; // Use color-specific text variable
-
-    &:hover {
-      background: $accent-danger-hover;
-    }
-  }
-
-  &-warning {
-    background: $accent-warning;
-    color: $accent-warning-text; // Use color-specific text variable
-
-    &:hover {
-      background: $accent-warning-hover;
-    }
-  }
-
-  &-primary {
-    background: $accent-primary;
-    color: $accent-primary-text; // Use color-specific text variable
-
-    &:hover {
-      background: $accent-primary-hover;
-    }
-  }
-}
-
 // Repository list
 .repo-list {
   max-height: 600px;
@@ -429,8 +362,8 @@ a {
 .repo-info {
   h3 {
     margin-bottom: 4px;
-    color: $accent-primary;
-    font-weight: 300; // Light weight for repository titles
+    color: $subheading-color;
+    font-weight: 300;
   }
 
   p {
@@ -445,29 +378,7 @@ a {
   align-items: center;
   font-size: 0.8rem;
   color: $text-secondary;
-}
-
-// Badges
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 400; // Lighter weight for badges
-
-  &-private {
-    background: #{$accent-warning}22;
-    color: $accent-warning;
-  }
-
-  &-public {
-    background: $accent-success;
-    color: $accent-success-text; // Use color-specific text variable
-  }
-
-  &-language {
-    background: $border-color;
-    color: $text-primary;
-  }
+  margin-top: 8px;
 }
 
 // Status messages
@@ -475,24 +386,6 @@ a {
   text-align: center;
   padding: 40px;
   color: $text-secondary;
-}
-
-.error {
-  background: #{$accent-danger}22;
-  border: 1px solid $accent-danger;
-  color: $danger-text;
-  padding: 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-}
-
-.success {
-  background: #{$accent-success}22;
-  border: 1px solid $accent-success;
-  color: $success-text;
-  padding: 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
 }
 
 // Stats
@@ -534,6 +427,31 @@ a {
   select {
     flex: 1;
     min-width: 200px;
+    padding: 11.2px; // 30% less than 16px
+    background: $bg-secondary; // Match site background instead of white
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    color: $text-primary;
+    font-size: 1.3rem; // 30% bigger than 1rem
+
+    &:focus {
+      outline: none;
+      border-color: $accent-primary;
+      background: $bg-tertiary; // Slightly lighter on focus
+    }
+
+    &::placeholder {
+      color: $text-secondary;
+    }
+  }
+
+  select {
+    cursor: pointer;
+
+    option {
+      background: $bg-secondary;
+      color: $text-primary;
+    }
   }
 }
 
@@ -542,12 +460,12 @@ a {
   background: $bg-secondary;
   border: 1px solid $border-color;
   border-radius: 8px;
-  padding: 20px;
+  padding: 0.5em;
 
   h3 {
     margin-bottom: 16px;
-    color: $accent-primary;
-    font-weight: 300; // Light weight for section headers
+    color: $subheading-color;
+    font-weight: 300;
   }
 }
 
@@ -555,7 +473,7 @@ a {
   min-height: 500px;
   border: 2px dashed $border-color;
   border-radius: 8px;
-  padding: 16px;
+  padding: 0.5em;
   transition: all 0.2s;
 
   &.drag-over {
@@ -586,6 +504,9 @@ a {
   transition: all 0.2s;
   user-select: none;
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   &:hover {
     background: $border-color;
@@ -603,7 +524,7 @@ a {
   }
 
   .repo-name {
-    font-weight: 400; // Lighter weight for repository names
+    font-weight: 400;
     color: $accent-primary;
     margin-bottom: 1px;
     font-size: 0.8rem;
@@ -613,6 +534,22 @@ a {
     font-size: 0.65rem;
     color: $text-secondary;
     line-height: 1.1;
+  }
+
+  .checkbox-label {
+    margin: 0;
+    padding: 0;
+    gap: 0;
+
+    .checkbox-custom {
+      margin-right: 0;
+    }
+  }
+
+  .repo-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -640,7 +577,7 @@ a {
 
 .selected-count {
   color: $accent-primary;
-  font-weight: 400; // Lighter weight for count text
+  font-weight: 400;
   margin-right: 12px;
 }
 
@@ -668,17 +605,9 @@ a {
 }
 
 .folder-name {
-  font-weight: 400; // Lighter weight for folder names
+  font-weight: 400;
   color: $text-primary;
   font-size: 0.85rem;
-}
-
-.folder-count {
-  background: $accent-primary;
-  color: $accent-primary-text; // Use color-specific text variable
-  padding: 1px 4px;
-  border-radius: 8px;
-  font-size: 0.7rem;
 }
 
 .folder-content {
@@ -713,18 +642,6 @@ a {
     font-weight: 500;
   }
 
-  .remove-btn {
-    background: $accent-danger;
-    color: $accent-danger-text; // Use color-specific text variable
-    border: none;
-    border-radius: 3px;
-    padding: 2px 4px;
-    font-size: 0.65rem;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
   &:hover .remove-btn {
     opacity: 1;
   }
@@ -735,16 +652,6 @@ a {
   color: $text-secondary;
   padding: 40px;
   font-style: italic;
-}
-
-.delete-folder-btn {
-  background: $accent-danger;
-  color: $accent-danger-text; // Use color-specific text variable
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
 }
 
 // Child folders
@@ -781,4 +688,204 @@ a {
 .child-repo {
   margin-left: 4px;
   background: $bg-secondary;
+}
+
+// Utility classes for layout (replacing inline styles)
+.flex-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 20px;
+
+  // On smaller screens, allow wrapping but maintain left-right layout
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+
+    > div:first-child {
+      order: 1;
+      width: 100%;
+    }
+
+    > div:last-child {
+      order: 2;
+      width: 100%;
+      align-items: flex-start;
+    }
+  }
+}
+
+.flex-column-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.flex-column-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.grid-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  min-height: 600px;
+}
+
+.margin-vertical {
+  margin: 20px 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.auto-org-title {
+  margin: 0;
+  color: $subheading-color;
+  font-size: 1rem;
+}
+
+.btn-purple {
+  background: $accent-secondary;
+  color: $accent-secondary-text;
+
+  &:hover {
+    background: $accent-secondary-hover;
+    color: $accent-secondary-hover-text;
+  }
+}
+
+// Material Icons styling
+.material-icons {
+  font-family: "Material Icons";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.2em;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  vertical-align: middle;
+  margin-right: 0.5em;
+
+  // Button icon styling
+  .btn & {
+    margin-right: 0.4em;
+    font-size: 1.3em;
+    vertical-align: middle;
+    line-height: 1;
+  }
+}
+
+// Panel header with title and action button
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px; // Match the gap in flex-column classes
+
+  h3 {
+    margin: 0;
+    flex: 1;
+  }
+}
+
+// Small button variant
+.btn-small {
+  padding: 0.25em 0.5em;
+  font-size: 0.75rem;
+
+  .material-icons {
+    font-size: 1.1em;
+    margin-right: 0.3em;
+    vertical-align: middle;
+    line-height: 1;
+  }
+}
+
+// Classes to replace hardcoded JavaScript styles
+.stats-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid $border-color;
+}
+
+.clone-preview-container {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.clone-preview-item {
+  padding: 8px;
+  border-bottom: 1px solid $border-color;
+}
+
+.clone-result-success {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 4px;
+  background: #0d4429;
+}
+
+.clone-result-error {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 4px;
+  background: #442c2c;
+}
+
+.clone-result-message {
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.clone-result-path {
+  font-size: 0.8rem;
+  color: $text-secondary;
+}
+
+.success-margin {
+  margin-bottom: 20px;
+}
+
+.repo-icon-small {
+  font-size: 0.8em;
+}
+
+.language-meta {
+  color: $text-secondary;
+}
+
+.empty-folder-placeholder {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: $text-secondary;
+  text-align: center;
+  font-style: italic;
+}
+
+.env-indicator-visible {
+  display: flex !important;
 }

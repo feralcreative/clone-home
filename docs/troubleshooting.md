@@ -10,7 +10,7 @@ This guide covers common issues and solutions for Clone Home.
 
 **Solutions**:
 - **Check Node.js version**: Ensure you have Node.js 18.0.0 or higher
-- **Port conflicts**: If port 3000 is in use, the interface will try alternative ports
+- **Port conflicts**: If port 3847 is in use, the interface will try alternative ports
 - **Check dependencies**: Run `npm install` to ensure all dependencies are installed
 - **Clear cache**: Try `rm -rf node_modules package-lock.json && npm install`
 
@@ -18,8 +18,8 @@ This guide covers common issues and solutions for Clone Home.
 # Check Node.js version
 node --version
 
-# Check if port 3000 is in use
-lsof -i :3000
+# Check if port 3847 is in use
+lsof -i :3847
 
 # Try starting on a different port
 PORT=3001 npm start web
@@ -252,5 +252,5 @@ If you have many repositories:
 - **[Main README](../README.md)** - Project overview and quick start
 - **[Web Interface Guide](web-interface.md)** - Visual drag-and-drop interface
 - **[CLI Guide](cli-guide.md)** - Command-line interface documentation
-- **[Usage Examples](../examples/README.md)** - Comprehensive examples and workflows
+- **[Usage Examples](../configs/README.md)** - Comprehensive examples and workflows
 - **[Development Guide](development.md)** - Contributing and development setup

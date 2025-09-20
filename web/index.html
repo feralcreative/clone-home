@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clone Home - Repository Manager</title>
-    <link rel="stylesheet" href="styles/styles.css?v=5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Scope+One&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="assets/styles/styles.css?v=16">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏠 Clone Home</h1>
+            <h1><img src="assets/images/logo-clone-home.svg" alt="Clone Home Logo" class="logo">Clone Home</h1>
             <p>Manage and organize all your GitHub repositories</p>
         </div>
 
@@ -27,23 +31,23 @@
                 <div id="setup-form">
                     <div class="form-group">
                         <label for="token">GitHub Personal Access Token</label>
-                        <div id="token-env-indicator" class="env-indicator-above" style="display: none;">
-                            <span class="checkmark">✓</span>
+                        <div id="token-env-indicator" class="env-indicator-above hidden">
+                            <span class="material-icons checkmark">check_circle</span>
                             <span>Available in .env file</span>
                         </div>
                         <input type="password" id="token" placeholder="ghp_..." class="input-with-env">
                     </div>
                     <div class="form-group">
                         <label for="targetDir">Target Directory</label>
-                        <div id="targetDir-env-indicator" class="env-indicator-above" style="display: none;">
-                            <span class="checkmark">✓</span>
+                        <div id="targetDir-env-indicator" class="env-indicator-above hidden">
+                            <span class="material-icons checkmark">check_circle</span>
                             <span>Available in .env file</span>
                         </div>
                         <input type="text" id="targetDir" value="./repositories" class="input-with-env">
                     </div>
                     <div class="form-group">
-                        <div id="includeOrgs-env-indicator" class="env-indicator-above" style="display: none;">
-                            <span class="checkmark">✓</span>
+                        <div id="includeOrgs-env-indicator" class="env-indicator-above hidden">
+                            <span class="material-icons checkmark">check_circle</span>
                             <span>Available in .env file</span>
                         </div>
                         <label class="checkbox-label">
@@ -53,8 +57,8 @@
                         </label>
                     </div>
                     <div class="form-group">
-                        <div id="includeForks-env-indicator" class="env-indicator-above" style="display: none;">
-                            <span class="checkmark">✓</span>
+                        <div id="includeForks-env-indicator" class="env-indicator-above hidden">
+                            <span class="material-icons checkmark">check_circle</span>
                             <span>Available in .env file</span>
                         </div>
                         <label class="checkbox-label">
@@ -63,9 +67,9 @@
                             <span class="checkbox-text">Include Forked Repositories</span>
                         </label>
                     </div>
-                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div class="flex-row">
                         <button class="btn" onclick="saveConfig()">Save Configuration</button>
-                        <button class="btn" style="background: #6f42c1;" onclick="exportToEnv()">Export to .env File</button>
+                        <button class="btn btn-purple" onclick="exportToEnv()">Export to .env File</button>
                     </div>
                 </div>
             </div>
@@ -94,32 +98,35 @@
         <div id="organize" class="tab-content">
             <div class="card">
                 <h2>Repository Organization</h2>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 20px;">
+                <div class="flex-between">
 
                     <!-- Left side: Config and folder management buttons -->
-                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" onclick="loadConfigFile()">⚙️ Load Config</button>
-                        <button class="btn btn-secondary" onclick="saveConfigFile()">💾 Save Config</button>
-                        <button class="btn btn-secondary" onclick="addNewFolder()">📂 Add Folder</button>
+                    <div class="flex-column-start">
+                        <h3 class="auto-org-title"><span class="material-icons">settings</span>Configuration & Management</h3>
+                        <div class="flex-row">
+                            <button class="btn btn-secondary" onclick="loadConfigFile()"><span class="material-icons">upload_file</span>Load Config</button>
+                            <button class="btn btn-secondary" onclick="saveConfigFile()"><span class="material-icons">save</span>Save Config</button>
+                            <button class="btn btn-secondary" onclick="addNewFolder()"><span class="material-icons">create_new_folder</span>Add Folder</button>
+                        </div>
                     </div>
 
                     <!-- Right side: Auto-organization options -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                        <h3 style="margin: 0; color: #58a6ff; font-size: 1rem;">🤖 Auto-Organization Options</h3>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="autoOrganizeByOwner()">👤 By Owner</button>
-                            <button class="btn btn-secondary" onclick="autoOrganizeByLanguage()">💻 By Language</button>
-                            <button class="btn btn-secondary" onclick="autoOrganizeByYear()">📅 By Year</button>
+                    <div class="flex-column-end">
+                        <h3 class="auto-org-title"><span class="material-icons">auto_awesome</span>Auto-Organization Options</h3>
+                        <div class="flex-row">
+                            <button class="btn btn-secondary" onclick="autoOrganizeByOwner()"><span class="material-icons">person</span>By Owner</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByLanguage()"><span class="material-icons">code</span>By Language</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByYear()"><span class="material-icons">calendar_today</span>By Year</button>
                         </div>
                     </div>
                 </div>
-                <input type="file" id="configFileInput" accept=".clonehome,.json" style="display: none;" onchange="importConfigFile(event)">
+                <input type="file" id="configFileInput" accept=".clonehome,.json" class="hidden" onchange="importConfigFile(event)">
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; min-height: 600px;">
+                <div class="grid-two-columns">
 
                     <!-- Unorganized Repositories -->
                     <div class="organize-panel">
-                        <h3>📋 Unorganized Repositories</h3>
+                        <h3><span class="material-icons">list_alt</span>Unorganized Repositories</h3>
                         <div class="multi-select-controls" id="multi-select-controls">
                             <span class="selected-count" id="selected-count">0 selected</span>
                             <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
@@ -133,7 +140,12 @@
 
                     <!-- Organized Structure -->
                     <div class="organize-panel">
-                        <h3>🗂️ Organization Structure</h3>
+                        <div class="panel-header">
+                            <h3><span class="material-icons">folder_open</span>Organization Structure</h3>
+                            <button class="btn btn-danger btn-small" onclick="clearOrganizationStructure()">
+                                <span class="material-icons">clear_all</span>Clear All
+                            </button>
+                        </div>
                         <div id="organized-structure" class="folder-structure">
                             <div class="empty-state">Drag repositories here to organize them</div>
                         </div>
@@ -158,7 +170,7 @@
             <div class="card">
                 <h2>Clone Repositories</h2>
                 <p>Clone your repositories to the configured directory.</p>
-                <div style="margin: 20px 0;">
+                <div class="margin-vertical">
                     <button class="btn btn-secondary" onclick="previewClone()">Preview Clone</button>
                     <button class="btn" onclick="startClone()">Start Cloning</button>
                 </div>

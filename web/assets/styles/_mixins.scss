@@ -1,0 +1,43 @@
+// Mixins for reusable styles
+@use "variables" as *;
+
+// Button mixin with color variants
+@mixin button-variant($bg-color, $text-color, $hover-bg-color, $hover-text-color) {
+  background: $bg-color;
+  color: $text-color;
+
+  &:hover {
+    background: $hover-bg-color;
+    color: $hover-text-color;
+  }
+}
+
+// Card/container mixin
+@mixin card-style($bg-color: $bg-secondary, $border-color: $border-color) {
+  background: $bg-color;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+// Flex center mixin
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Transition mixin
+@mixin smooth-transition($properties: all, $duration: 0.2s, $timing: ease) {
+  transition: $properties $duration $timing;
+}
+
+// Badge mixin
+@mixin badge-style($bg-color, $text-color) {
+  background: $bg-color;
+  color: $text-color;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+}

@@ -2,6 +2,18 @@
 
 The Clone Home web interface provides an intuitive, visual way to manage your GitHub repositories with drag-and-drop organization and one-click cloning.
 
+## Key Features
+
+- **🌐 Visual Interface**: Clean, modern web interface accessible via browser
+- **🔧 Easy Setup**: Step-by-step configuration wizard with real-time .env file monitoring
+- **📊 Repository Overview**: Browse all your repositories with filtering and search
+- **🎯 Smart Organization**: Drag-and-drop repository organization with folder management
+- **🤖 Auto-Organization**: One-click organization by owner, language, or creation year
+- **💾 Configuration Export**: Save and share your organization setups
+- **⚡ One-Click Cloning**: Clone all organized repositories with a single click
+- **🔄 Real-time Updates**: Automatic detection of .env file changes without server restart
+- **⚡ Performance Optimized**: Memory-efficient with debounced operations and cleanup
+
 ## Getting Started
 
 ### Starting the Web Interface
@@ -12,7 +24,7 @@ npm start web
 clone-home web
 ```
 
-The web interface will be available at `http://localhost:3000`
+The web interface will be available at `http://localhost:3847`
 
 ## Interface Overview
 
@@ -22,6 +34,7 @@ The web interface will be available at `http://localhost:3000`
 - **Target Directory Setup**: Choose where repositories will be cloned (supports `~/` for home directory)
 - **Repository Options**: Configure organization and fork inclusion settings
 - **Environment Integration**: Visual indicators show when settings are available in `.env` files
+- **Real-time Monitoring**: Automatic detection when `.env` files are added, modified, or removed
 
 ### 📊 Repositories Tab
 
@@ -151,12 +164,12 @@ The web interface can read configuration from `.env` files and will show visual 
 
 ### Auto-Organization Examples
 
-See the [usage examples](../examples/README.md) for detailed before/after examples of each auto-organization option.
+See the [usage examples](../configs/README.md) for detailed before/after examples of each auto-organization option.
 
 ## Related Documentation
 
 - **[Main README](../README.md)** - Project overview and quick start
 - **[CLI Guide](cli-guide.md)** - Command-line interface documentation
-- **[Usage Examples](../examples/README.md)** - Comprehensive examples and workflows
+- **[Usage Examples](../configs/README.md)** - Comprehensive examples and workflows
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 - **[Development Guide](development.md)** - Contributing and development setup

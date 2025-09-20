@@ -2,11 +2,10 @@
 
 This directory contains example configurations and comprehensive usage documentation for Clone Home.
 
-## 📁 Example Files
+## 📁 Example Configuration Files
 
-- **[directory-tree.example.clonehome](directory-tree.example.clonehome)** - Example directory tree configuration
-- **[repository-organization.example.clonehome](repository-organization.example.clonehome)** - Example repository organization
-- **[feralcreative-2025-09-19.example.clonehome](feralcreative-2025-09-19.example.clonehome)** - Real-world configuration example
+- **[rules-based-organization.example.clonehome](rules-based-organization.example.clonehome)** - Rules-based automatic organization (by language, owner, patterns, etc.)
+- **[manual-folder-organization.example.clonehome](manual-folder-organization.example.clonehome)** - Manual folder-based organization (explicit repository assignments)
 
 ## 🌐 Web Interface Usage (Recommended)
 
@@ -20,7 +19,7 @@ npm install
 npm start web
 ```
 
-Your browser will automatically open to `http://localhost:3000` with the Clone Home interface.
+Your browser will automatically open to `http://localhost:3847` with the Clone Home interface.
 
 ### 📋 Step-by-Step Web Interface Workflow
 
@@ -63,6 +62,7 @@ Your browser will automatically open to `http://localhost:3000` with the Clone H
 When you click "By Owner", repositories are automatically grouped by their GitHub owner:
 
 **Before:**
+
 ```
 📦 All Repositories (ungrouped)
 ├── feralcreative/clone-home
@@ -73,6 +73,7 @@ When you click "By Owner", repositories are automatically grouped by their GitHu
 ```
 
 **After:**
+
 ```
 📁 feralcreative/
 ├── clone-home
@@ -89,6 +90,7 @@ When you click "By Owner", repositories are automatically grouped by their GitHu
 When you click "By Language", repositories are grouped by their primary programming language:
 
 **Before:**
+
 ```
 📦 All Repositories (ungrouped)
 ├── react-dashboard (JavaScript)
@@ -99,6 +101,7 @@ When you click "By Language", repositories are grouped by their primary programm
 ```
 
 **After:**
+
 ```
 📁 javascript/
 ├── react-dashboard
@@ -115,6 +118,7 @@ When you click "By Language", repositories are grouped by their primary programm
 When you click "By Year", repositories are grouped by their creation year:
 
 **Before:**
+
 ```
 📦 All Repositories (ungrouped)
 ├── old-project (created 2022)
@@ -124,6 +128,7 @@ When you click "By Year", repositories are grouped by their creation year:
 ```
 
 **After:**
+
 ```
 📁 2021/
 └── legacy-system

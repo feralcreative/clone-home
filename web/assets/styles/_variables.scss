@@ -1,0 +1,51 @@
+// Import color module for modern color functions
+@use "sass:color";
+
+// Variables
+$bg-primary: #0d1117;
+$bg-secondary: #161b22;
+$bg-tertiary: #21262d;
+$border-color: #30363d;
+$text-primary: #ffffff;
+$text-secondary: #8b949e;
+$btn-text-dark: #000000;
+$btn-text-light: #ffffff;
+
+// Bright rainbow color palette - organized by color with all related variables grouped together
+
+// Primary Blue - links, active states, highlights, focus borders
+$accent-primary: #33a3ff;
+$accent-primary-text: $btn-text-dark;
+$accent-primary-hover: color.adjust($accent-primary, $lightness: -20%);
+$accent-primary-hover-text: $accent-primary-text;
+
+// Success Green - success states, primary buttons, positive indicators
+$accent-success: #00cc66;
+$accent-success-text: $btn-text-dark;
+$accent-success-hover: color.adjust($accent-success, $lightness: -20%);
+$accent-success-hover-text: $accent-success-text;
+
+// Danger Red - error states, danger buttons, delete actions
+$accent-danger: #ff0000;
+$accent-danger-text: $btn-text-light;
+$accent-danger-hover: color.adjust($accent-danger, $lightness: -20%);
+$accent-danger-hover-text: $accent-danger-text;
+
+// Secondary Orange - secondary buttons, alternative actions
+$accent-secondary: #a900ff;
+$accent-secondary-text: $btn-text-light;
+$accent-secondary-hover: color.adjust($accent-secondary, $lightness: -20%);
+$accent-secondary-hover-text: $accent-secondary-text;
+
+// Warning Yellow - warning states, private repository badges, caution indicators
+$accent-warning: #ffcc00;
+$accent-warning-text: $btn-text-dark;
+$accent-warning-hover: color.adjust($accent-warning, $lightness: -20%);
+$accent-warning-hover-text: $accent-warning-text;
+
+// Subheading color - subtle teal to reduce blue usage
+$subheading-color: #4ecdc4;
+
+// Legacy text colors for status messages
+$success-text: $accent-success;
+$danger-text: $accent-danger;

@@ -11,8 +11,8 @@
     "start": "node src/cli.js",
     "dev": "node --watch src/cli.js",
     "test": "node --test test/*.test.js",
-    "build-css": "sass web/styles/styles.scss web/styles/styles.css",
-    "watch-css": "sass --watch web/styles/styles.scss:web/styles/styles.css",
+    "build-css": "sass web/assets/styles/styles.scss web/assets/styles/styles.css",
+    "watch-css": "sass --watch web/assets/styles/styles.scss:web/assets/styles/styles.css",
     "build": "npm run build-css"
   },
   "keywords": [
@@ -26,14 +26,15 @@
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^20.0.2",
-    "commander": "^11.1.0",
     "chalk": "^5.3.0",
-    "ora": "^7.0.1",
-    "inquirer": "^9.2.12",
-    "simple-git": "^3.20.0",
-    "fs-extra": "^11.1.1",
+    "chokidar": "^4.0.3",
+    "commander": "^11.1.0",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^9.2.12",
+    "ora": "^7.0.1",
+    "simple-git": "^3.20.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.0"

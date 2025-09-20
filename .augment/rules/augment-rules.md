@@ -1,10 +1,10 @@
 ---
-type: "manual"
+type: "always_apply"
 ---
 
 # AI Agent Rules
 
-Updated: 2025-07-15 16:37
+Updated: 2025-09-20 12:36
 
 ## Purpose
 
@@ -30,14 +30,12 @@ These rules are for AI agents. Follow them strictly in all coding, review, and s
 
 ## Color Usage
 
-- Only use colors defined in `_variables.scss` or _colors.scss.
+- Only use colors defined in the scss. Don't use variables that aren't defined.
 - Never use undefined color variables.
 
-## File Management
+## Compiling Styles
 
-- DO NOT create new files unless explicitly requested
-- Assume any required functions/scripts may already exist elsewhere in the codebase
-- Work with existing files only unless given permission otherwise
+- You generally do not need to compile scss. VS Code does it using the Live Sass Compile extension.
 
 ## Logging and Debugging
 

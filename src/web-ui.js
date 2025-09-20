@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs-extra";
 import { exec } from "child_process";
+import chokidar from "chokidar";
 import { CloneHome } from "./clone-home.js";
 import { Config } from "./config.js";
 
@@ -12,7 +13,9 @@ const __dirname = path.dirname(__filename);
 export class WebUI {
   constructor() {
     this.app = express();
-    this.port = 3000;
+    this.port = 3847;
+    this.envWatcher = null;
+    this.connectedClients = new Set();
     this.setupMiddleware();
     this.setupRoutes();
   }
@@ -60,6 +63,28 @@ export class WebUI {
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
+    });
+
+    // Server-Sent Events endpoint for real-time env file updates
+    this.app.get("/api/env-status", (req, res) => {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Cache-Control",
+      });
+
+      // Send initial env status
+      this.sendEnvStatus(res);
+
+      // Add client to connected clients set
+      this.connectedClients.add(res);
+
+      // Remove client when connection closes
+      req.on("close", () => {
+        this.connectedClients.delete(res);
+      });
     });
 
     this.app.post("/api/config", async (req, res) => {
@@ -319,8 +344,64 @@ export class WebUI {
     });
   }
 
+  sendEnvStatus(res) {
+    try {
+      const config = new Config();
+      const envConfig = config.getEnvConfig();
+
+      const status = {
+        hasToken: !!envConfig?.token,
+        hasTargetDir: !!envConfig?.targetDir,
+        hasIncludeOrgs: envConfig?.includeOrgs !== undefined,
+        hasIncludeForks: envConfig?.includeForks !== undefined,
+      };
+
+      res.write(`data: ${JSON.stringify(status)}\n\n`);
+    } catch (error) {
+      console.error("Error sending env status:", error);
+    }
+  }
+
+  broadcastEnvStatus() {
+    for (const client of this.connectedClients) {
+      this.sendEnvStatus(client);
+    }
+  }
+
+  setupEnvWatcher() {
+    const envPath = path.join(process.cwd(), ".env");
+
+    // Watch for .env file changes, creation, and deletion
+    this.envWatcher = chokidar.watch(envPath, {
+      ignoreInitial: false,
+      persistent: true,
+    });
+
+    this.envWatcher.on("add", () => {
+      console.log(".env file created");
+      this.broadcastEnvStatus();
+    });
+
+    this.envWatcher.on("change", () => {
+      console.log(".env file changed");
+      this.broadcastEnvStatus();
+    });
+
+    this.envWatcher.on("unlink", () => {
+      console.log(".env file deleted");
+      this.broadcastEnvStatus();
+    });
+
+    this.envWatcher.on("error", (error) => {
+      console.error("Error watching .env file:", error);
+    });
+  }
+
   async start() {
     return new Promise((resolve) => {
+      // Setup file watcher for .env file
+      this.setupEnvWatcher();
+
       this.server = this.app.listen(this.port, () => {
         const url = `http://localhost:${this.port}`;
         console.log(`🌐 Clone Home Web UI running at ${url}`);
@@ -359,6 +440,16 @@ export class WebUI {
   }
 
   stop() {
+    if (this.envWatcher) {
+      this.envWatcher.close();
+    }
+
+    // Close all SSE connections
+    for (const client of this.connectedClients) {
+      client.end();
+    }
+    this.connectedClients.clear();
+
     if (this.server) {
       this.server.close();
     }

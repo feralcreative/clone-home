@@ -55,4 +55,4 @@ test('should create config instance', () => {
 
 - **[Main README](../README.md)** - Project overview and quick start
 - **[Development Guide](../docs/development.md)** - Complete development setup and guidelines
-- **[Usage Examples](../examples/README.md)** - Comprehensive examples and workflows
+- **[Usage Examples](../configs/README.md)** - Comprehensive examples and workflows

@@ -147,7 +147,7 @@ program
 program
   .command("web")
   .description("Launch web interface for repository management")
-  .option("-p, --port <port>", "Port to run web server on", "3000")
+  .option("-p, --port <port>", "Port to run web server on", "3847")
   .action(async (options) => {
     try {
       const webUI = new WebUI();

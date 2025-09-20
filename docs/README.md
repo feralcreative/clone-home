@@ -13,5 +13,5 @@ This directory contains detailed documentation for Clone Home.
 
 - [Installation Instructions](../README.md#installation)
 - [Quick Start Guide](../README.md#quick-start)
-- [Examples](../examples/)
+- [Configuration Examples](../configs/)
 - [Tests](../test/)

@@ -89,3 +89,6 @@ license.txt
 # Generated CSS (anywhere in project)
 **/*.css
 **/*.css.map
+
+# AI Augment files (anywhere in project)
+**/*.augment
