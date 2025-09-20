@@ -91,4 +91,4 @@ license.txt
 **/*.css.map
 
 # AI Augment files (anywhere in project)
-**/*.augment
+.augment
