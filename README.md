@@ -1,6 +1,10 @@
 # <img src="web/assets/images/lockup-clone-home.png" alt="Clone Home" width="400">
 
-A powerful tool for **organizing your local repositories** by cloning and structuring all your GitHub repositories onto your machine. **Clone Home only reads from GitHub via API** - it never modifies anything on GitHub itself. Perfect for quickly setting up a new development workstation with all your repositories organized locally.
+A powerful tool that clones and organizes all your GitHub repositories (or a subset thereof) based on your custom configuration.
+
+With Clone Home, you can instantly replicate your entire development environment on a new machine in seconds.
+
+![Clone Home Web Interface](web/assets/images/screenshot.png)
 
 ## ✨ Key Features
 
@@ -11,10 +15,6 @@ A powerful tool for **organizing your local repositories** by cloning and struct
 - **🔍 Smart Filtering**: Advanced search and filtering capabilities
 - **⚡ One-Click Cloning**: Clone all repositories with a single command
 - **🛡️ Safe Operations**: Preview mode and safety checks prevent accidents
-
-## 📸 Screenshot
-
-![Clone Home Web Interface](web/assets/images/screenshot.png)
 
 ## 🎯 What Clone Home Does
 
@@ -35,7 +35,7 @@ A powerful tool for **organizing your local repositories** by cloning and struct
 - Create or delete repositories on GitHub
 - Change GitHub repository settings or permissions
 
-**Think of it as:** A smart way to organize all your GitHub repos locally for development work.
+**It's simply a smart way to download and organize all your GitHub repos locally.**
 
 ## 🚀 Quick Start
 
