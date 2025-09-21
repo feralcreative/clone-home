@@ -248,7 +248,7 @@ export class CloneHome {
     if (results.errors.length > 0) {
       console.log(chalk.red("\n❌ Errors encountered:"));
       results.errors.forEach((error) => {
-        console.log(chalk.red(`  • ${error.repo}: ${error.error}`));
+        console.log(chalk.red(`  &emsp; ${error.repo}: ${error.error}`));
       });
     }
   }

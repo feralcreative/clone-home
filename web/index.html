@@ -14,7 +14,7 @@
     <div class="container">
         <div class="header">
             <h1><img src="assets/images/logo-clone-home.svg" alt="Clone Home Logo" class="logo">Clone Home</h1>
-            <p>Manage and organize all your GitHub repositories</p>
+            <p>Organize and clone all your GitHub repositories</p>
         </div>
 
         <div class="tabs">
@@ -53,7 +53,7 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="includeOrgs" checked class="styled-checkbox">
                             <span class="checkbox-custom"></span>
-                            <span class="checkbox-text">Include Organization Repositories</span>
+                            <span class="checkbox-text">Include organization repositories</span>
                         </label>
                     </div>
                     <div class="form-group">
@@ -64,12 +64,12 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="includeForks" class="styled-checkbox">
                             <span class="checkbox-custom"></span>
-                            <span class="checkbox-text">Include Forked Repositories</span>
+                            <span class="checkbox-text">Include forked repositories</span>
                         </label>
                     </div>
                     <div class="flex-row">
-                        <button class="btn" onclick="saveConfig()">Save Configuration</button>
-                        <button class="btn btn-purple" onclick="exportToEnv()">Export to .env File</button>
+                        <button class="btn" onclick="saveConfig()">Save configuration</button>
+                        <button class="btn btn-purple" onclick="exportToEnv()">Save settings to .env file</button>
                     </div>
                 </div>
             </div>
@@ -78,14 +78,14 @@
         <!-- Repositories Tab -->
         <div id="repositories" class="tab-content">
             <div class="card">
-                <h2>Your Repositories</h2>
+                <h2>Your repositories</h2>
                 <div class="filters">
                     <input type="text" id="repoFilter" placeholder="Filter repositories..." onkeyup="filterRepositories()">
                     <select id="languageFilter" onchange="filterRepositories()">
-                        <option value="">All Languages</option>
+                        <option value="">All languages</option>
                     </select>
                     <select id="ownerFilter" onchange="filterRepositories()">
-                        <option value="">All Owners</option>
+                        <option value="">All owners</option>
                     </select>
                 </div>
                 <div id="repo-list" class="repo-list">
@@ -97,26 +97,26 @@
         <!-- Organize Tab -->
         <div id="organize" class="tab-content">
             <div class="card">
-                <h2>Repository Organization</h2>
+                <h2>Repository organization</h2>
                 <div class="flex-between">
 
                     <!-- Left side: Config and folder management buttons -->
                     <div class="flex-column-start">
-                        <h3 class="auto-org-title"><span class="material-icons">settings</span>Configuration & Management</h3>
+                        <h3 class="auto-org-title"><span class="material-icons">settings</span>Configuration and management</h3>
                         <div class="flex-row">
-                            <button class="btn btn-secondary" onclick="loadConfigFile()"><span class="material-icons">upload_file</span>Load Config</button>
-                            <button class="btn btn-secondary" onclick="saveConfigFile()"><span class="material-icons">save</span>Save Config</button>
-                            <button class="btn btn-secondary" onclick="addNewFolder()"><span class="material-icons">create_new_folder</span>Add Folder</button>
+                            <button class="btn btn-secondary" onclick="loadConfigFile()"><span class="material-icons">upload_file</span>Load config</button>
+                            <button class="btn btn-secondary" onclick="saveConfigFile()"><span class="material-icons">save</span>Save config</button>
+                            <button class="btn btn-secondary" onclick="addNewFolder()"><span class="material-icons">create_new_folder</span>Add folder</button>
                         </div>
                     </div>
 
                     <!-- Right side: Auto-organization options -->
                     <div class="flex-column-end">
-                        <h3 class="auto-org-title"><span class="material-icons">auto_awesome</span>Auto-Organization Options</h3>
+                        <h3 class="auto-org-title"><span class="material-icons">auto_awesome</span>Auto-organization options</h3>
                         <div class="flex-row">
-                            <button class="btn btn-secondary" onclick="autoOrganizeByOwner()"><span class="material-icons">person</span>By Owner</button>
-                            <button class="btn btn-secondary" onclick="autoOrganizeByLanguage()"><span class="material-icons">code</span>By Language</button>
-                            <button class="btn btn-secondary" onclick="autoOrganizeByYear()"><span class="material-icons">calendar_today</span>By Year</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByOwner()"><span class="material-icons">person</span>By owner</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByLanguage()"><span class="material-icons">code</span>By language</button>
+                            <button class="btn btn-secondary" onclick="autoOrganizeByYear()"><span class="material-icons">calendar_today</span>By year</button>
                         </div>
                     </div>
                 </div>
@@ -126,12 +126,12 @@
 
                     <!-- Unorganized Repositories -->
                     <div class="organize-panel">
-                        <h3><span class="material-icons">list_alt</span>Unorganized Repositories</h3>
+                        <h3><span class="material-icons">list_alt</span>Unorganized repositories</h3>
                         <div class="multi-select-controls" id="multi-select-controls">
                             <span class="selected-count" id="selected-count">0 selected</span>
-                            <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
+                            <button class="btn btn-secondary" onclick="selectAll()">Select all</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
-                            <button class="btn btn-secondary" onclick="moveSelectedToFolder()">Move to Folder</button>
+                            <button class="btn btn-secondary" onclick="moveSelectedToFolder()">Move to folder</button>
                         </div>
                         <div id="unorganized-repos" class="repo-drop-zone">
                             <div class="loading">Load repositories first</div>
@@ -141,9 +141,9 @@
                     <!-- Organized Structure -->
                     <div class="organize-panel">
                         <div class="panel-header">
-                            <h3><span class="material-icons">folder_open</span>Organization Structure</h3>
+                            <h3><span class="material-icons">folder_open</span>Organization structure</h3>
                             <button class="btn btn-danger btn-small" onclick="clearOrganizationStructure()">
-                                <span class="material-icons">clear_all</span>Clear All
+                                <span class="material-icons">clear_all</span>Clear all
                             </button>
                         </div>
                         <div id="organized-structure" class="folder-structure">
@@ -158,7 +158,7 @@
                 <!-- Stats will be populated here -->
             </div>
             <div class="card">
-                <h2>Repository Statistics</h2>
+                <h2>Repository statistics</h2>
                 <div id="detailed-stats">
                     <div class="loading">Load repositories first</div>
                 </div>
@@ -168,11 +168,11 @@
         <!-- Clone Tab -->
         <div id="clone" class="tab-content">
             <div class="card">
-                <h2>Clone Repositories</h2>
+                <h2>Clone repositories</h2>
                 <p>Clone your repositories to the configured directory.</p>
                 <div class="margin-vertical">
-                    <button class="btn btn-secondary" onclick="previewClone()">Preview Clone</button>
-                    <button class="btn" onclick="startClone()">Start Cloning</button>
+                    <button class="btn btn-secondary" onclick="previewClone()">Preview clone</button>
+                    <button class="btn" onclick="startClone()">Start cloning</button>
                 </div>
                 <div id="clone-results"></div>
             </div>

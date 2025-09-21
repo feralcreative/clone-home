@@ -64,24 +64,33 @@
 
 // Repository badges
 .badge {
-  padding: 3px 8px;
+  padding: 0.1em 1em;
   border-radius: 12px;
-  font-size: 0.585rem;
-  font-weight: 400;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-align: center;
 
   &-private {
-    background: #{$accent-warning}22;
-    color: $accent-warning;
+    background: #{$repo-private-color}22;
+    color: $repo-private-color;
+    min-width: 6em;
   }
 
   &-public {
-    background: $accent-success;
-    color: $accent-success-text; // Use color-specific text variable
+    background: $repo-public-color;
+    color: $accent-success-text;
+    min-width: 6em;
+
+    // Globe icons in public badges should match the text color (dark)
+    .repo-icon-small[data-private="false"] {
+      color: $accent-success-text;
+    }
   }
 
   &-language {
     background: $border-color;
     color: $text-primary;
+    min-width: 8em;
   }
 }
 
@@ -89,7 +98,7 @@
 .error {
   background: #{$accent-danger}22;
   border: 1px solid $accent-danger;
-  color: $danger-text;
+  color: $accent-danger;
   padding: 16px;
   border-radius: 6px;
   margin-bottom: 20px;
@@ -98,29 +107,28 @@
 .success {
   background: #{$accent-success}22;
   border: 1px solid $accent-success;
-  color: $success-text;
+  color: $accent-success;
   padding: 16px;
   border-radius: 6px;
   margin-bottom: 20px;
 }
 
-// Environment indicators - positioned above fields with no border
+// Environment indicators - positioned above fields
 .env-indicator-above {
   display: flex;
   align-items: center;
-  gap: 8px;
   font-size: 0.85rem;
   font-weight: 500;
   color: $accent-success;
-  background: transparent; // No background
-  padding: 4px 0; // Minimal padding
-  margin-bottom: 6px; // Reduced to match text field spacing exactly
-  border: none; // No border on indicator
+  background: transparent;
+  padding: 4px 0;
+  margin-bottom: 6px;
 
   .checkmark {
     color: $accent-success;
     font-weight: 600;
     font-size: 0.9rem;
+    margin-right: 0;
   }
 }
 

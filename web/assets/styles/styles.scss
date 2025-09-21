@@ -26,6 +26,7 @@ h5,
 h6 {
   font-family: "Scope One", Georgia, serif;
   font-weight: 400;
+  margin-bottom: 0.5em;
 }
 
 // Logo styling
@@ -145,6 +146,7 @@ a {
     border-radius: 6px;
     color: $text-primary;
     font-size: 1rem;
+    font-weight: 300;
 
     &:focus {
       outline: none;
@@ -361,24 +363,25 @@ a {
 
 .repo-info {
   h3 {
-    margin-bottom: 4px;
+    margin-bottom: 0;
     color: $subheading-color;
     font-weight: 300;
   }
 
-  p {
+  p.description {
     color: $text-secondary;
     font-size: 0.9rem;
+    margin-bottom: 1em;
   }
 }
 
 .repo-meta {
   display: flex;
-  gap: 12px;
+  gap: 1em;
   align-items: center;
   font-size: 0.8rem;
   color: $text-secondary;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 // Status messages
@@ -427,12 +430,13 @@ a {
   select {
     flex: 1;
     min-width: 200px;
-    padding: 11.2px; // 30% less than 16px
-    background: $bg-secondary; // Match site background instead of white
+    padding: 11.2px;
+    background: $bg-secondary;
     border: 1px solid $border-color;
     border-radius: 6px;
     color: $text-primary;
-    font-size: 1.3rem; // 30% bigger than 1rem
+    font-size: 1.3rem;
+    font-weight: light;
 
     &:focus {
       outline: none;
@@ -442,6 +446,7 @@ a {
 
     &::placeholder {
       color: $text-secondary;
+      font-weight: light;
     }
   }
 
@@ -511,6 +516,10 @@ a {
   &:hover {
     background: $border-color;
     transform: translateY(-1px);
+
+    .drag-handle {
+      opacity: 1;
+    }
   }
 
   &.dragging {
@@ -550,6 +559,21 @@ a {
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+}
+
+.drag-handle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  color: $text-secondary;
+
+  .material-icons {
+    font-size: 16px;
   }
 }
 
@@ -872,6 +896,17 @@ a {
 
 .repo-icon-small {
   font-size: 0.8em;
+  margin-right: 2px; // Reduced spacing to the right
+
+  // Private repository icon (lock) - red
+  &[data-private="true"] {
+    color: $repo-private-color;
+  }
+
+  // Public repository icon (globe) - green like the badge background
+  &[data-private="false"] {
+    color: $repo-public-color;
+  }
 }
 
 .language-meta {

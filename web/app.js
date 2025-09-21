@@ -11,14 +11,6 @@ function formatDate(dateString) {
   return date.toISOString().split("T")[0];
 }
 
-// Helper function to clean up event listeners to prevent memory leaks
-function cleanupEventListeners(container) {
-  // Clone and replace container to remove all event listeners
-  const newContainer = container.cloneNode(true);
-  container.parentNode.replaceChild(newContainer, container);
-  return newContainer;
-}
-
 // Debounce function to improve performance
 function debounce(func, wait) {
   let timeout;
@@ -232,7 +224,7 @@ INCLUDE_FORKS=${includeForks}
 
 // Clear organization structure with confirmation
 function clearOrganizationStructure() {
-  const hasOrganizedRepos = Object.keys(folderStructure).length > 0;
+  const hasOrganizedRepos = Object.keys(organizationConfig).length > 0;
 
   if (!hasOrganizedRepos) {
     showError("No organized repositories to clear");
@@ -246,23 +238,14 @@ function clearOrganizationStructure() {
   );
 
   if (confirmed) {
-    // Move all organized repos back to unorganized
-    Object.keys(folderStructure).forEach((folderPath) => {
-      const repos = folderStructure[folderPath];
-      repos.forEach((repo) => {
-        // Add back to unorganized list if not already there
-        if (!unorganizedRepos.includes(repo)) {
-          unorganizedRepos.push(repo);
-        }
-      });
-    });
-
-    // Clear the folder structure
-    folderStructure = {};
+    // Clear the organization config
+    organizationConfig = {};
 
     // Update displays
-    updateUnorganizedRepos();
-    updateOrganizedStructure();
+    initializeOrganizer();
+
+    // Save the cleared configuration
+    saveOrganizationConfig();
 
     showSuccess("Organization structure cleared. All repositories moved to unorganized list.");
   }
@@ -304,13 +287,13 @@ function displayRepositories() {
         <div class="repo-item">
             <div class="repo-info">
                 <h3>${repo.full_name}</h3>
-                <p>${repo.description || "No description"}</p>
+                <p class="description">${repo.description || "No description"}</p>
                 <div class="repo-meta">
                     <span class="badge ${repo.private ? "badge-private" : "badge-public"}">
                         ${
                           repo.private
-                            ? '<span class="material-icons">lock</span>Private'
-                            : '<span class="material-icons">public</span>Public'
+                            ? '<span class="material-icons repo-icon-small" data-private="true">lock</span>Private'
+                            : '<span class="material-icons repo-icon-small" data-private="false">public</span>Public'
                         }
                     </span>
                     ${repo.language ? `<span class="badge badge-language">${repo.language}</span>` : ""}
@@ -471,7 +454,7 @@ async function previewClone() {
                                 ? '<span class="material-icons repo-icon-small">lock</span>'
                                 : '<span class="material-icons repo-icon-small">public</span>'
                             }
-                                ${repo.language ? `<span class="language-meta"> • ${repo.language}</span>` : ""}
+                                ${repo.language ? `<span class="language-meta"> &emsp; ${repo.language}</span>` : ""}
                             </div>
                         `
                           )
@@ -616,8 +599,8 @@ function initializeOrganizer() {
 function displayUnorganizedRepos() {
   const container = document.getElementById("unorganized-repos");
 
-  // Clean up existing event listeners to prevent memory leaks
-  cleanupEventListeners(container);
+  // Clear existing content
+  container.innerHTML = "";
 
   const unorganizedRepos = repositories.filter((repo) => !isRepoOrganized(repo));
 
@@ -634,11 +617,10 @@ function displayUnorganizedRepos() {
              draggable="true"
              data-repo="${repo.full_name}"
              onclick="toggleRepoSelection('${repo.full_name}', event)">
-            <label class="checkbox-label" onclick="event.stopPropagation(); toggleRepoSelection('${
-              repo.full_name
-            }', event)">
+            <label class="checkbox-label" onclick="event.stopPropagation();">
                 <input type="checkbox"
                        class="styled-checkbox selection-checkbox"
+                       onchange="toggleRepoSelection('${repo.full_name}', event)"
                        ${selectedRepos.has(repo.full_name) ? "checked" : ""}>
                 <span class="checkbox-custom"></span>
             </label>
@@ -647,10 +629,13 @@ function displayUnorganizedRepos() {
                 <div class="repo-meta">
                     ${
                       repo.private
-                        ? '<span class="material-icons repo-icon-small">lock</span>'
-                        : '<span class="material-icons repo-icon-small">public</span>'
-                    }${repo.language ? ` • ${repo.language}` : ""} • ${formatDate(repo.updated_at)}
+                        ? '<span class="material-icons repo-icon-small" data-private="true">lock</span>'
+                        : '<span class="material-icons repo-icon-small" data-private="false">public</span>'
+                    }${repo.language ? ` &emsp; ${repo.language}` : ""} · ${formatDate(repo.updated_at)}
                 </div>
+            </div>
+            <div class="drag-handle">
+                <span class="material-icons">drag_indicator</span>
             </div>
         </div>
     `
@@ -967,11 +952,23 @@ function handleDropOnStructure(e) {
 
   // Only create folder if we're actually dropping on empty space
   // Check if we're dropping on the main container, not inside a folder
-  if (e.target.id === "organized-structure" || e.target.classList.contains("empty-state")) {
+  const isMainContainer =
+    e.target.id === "organized-structure" ||
+    e.target.classList.contains("empty-state") ||
+    e.target.classList.contains("folder-structure");
+
+  console.log("Drop target check:", {
+    targetId: e.target.id,
+    targetClasses: e.target.className,
+    isMainContainer,
+  });
+
+  if (isMainContainer) {
     // Create a folder named after the repository itself when dropping on empty space
     reposToMove.forEach((repoName) => {
       const repoFolderName = repoName.split("/").pop(); // Get just the repo name
       const fullPath = repoFolderName; // Use repo name as the folder name in root
+      console.log("Creating folder for repo:", { repoName, repoFolderName, fullPath });
       addRepoToFolder(fullPath, repoName);
     });
 
@@ -979,6 +976,8 @@ function handleDropOnStructure(e) {
     if (reposToMove.some((repo) => selectedRepos.has(repo))) {
       clearSelection();
     }
+  } else {
+    console.log("Drop target not recognized as main container");
   }
 }
 

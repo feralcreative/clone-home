@@ -46,6 +46,7 @@ $accent-warning-hover-text: $accent-warning-text;
 // Subheading color - subtle teal to reduce blue usage
 $subheading-color: #4ecdc4;
 
-// Legacy text colors for status messages
-$success-text: $accent-success;
-$danger-text: $accent-danger;
+// Repository visibility colors - unified rule for both badges and icons
+// Private repositories: red, Public repositories: green
+$repo-private-color: $accent-danger;
+$repo-public-color: $accent-success;
