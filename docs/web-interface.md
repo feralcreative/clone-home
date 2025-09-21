@@ -1,6 +1,6 @@
 # Web Interface Guide
 
-The Clone Home web interface provides an intuitive, visual way to manage your GitHub repositories with drag-and-drop organization and one-click cloning.
+The Clone Home web interface provides an intuitive, visual way to **organize your local repositories** by cloning and structuring your GitHub repositories on your machine. **Clone Home only reads from GitHub via API** - it never modifies anything on GitHub itself.
 
 ## Key Features
 

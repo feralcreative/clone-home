@@ -1,22 +1,41 @@
 # Clone Home 🏠
 
-A powerful GitHub repository management tool with both web interface and CLI. Clone, organize, and manage all your GitHub repositories with an intuitive drag-and-drop web interface or command-line tools. Perfect for quickly setting up a new development workstation with all your repositories.
+A powerful tool for **organizing your local repositories** by cloning and structuring all your GitHub repositories on your machine. **Clone Home only reads from GitHub via API** - it never modifies anything on GitHub itself. Perfect for quickly setting up a new development workstation with all your repositories organized locally.
 
 ## ✨ Key Features
 
 - **🌐 Web Interface**: Drag-and-drop organization with visual folder management
 - **🖥️ Command Line**: Powerful CLI with filtering, dry-run, and automation
 - **🤖 Auto-Organization**: One-click organization by owner, language, or year
-- **💾 Dual Configuration Export**: Save both `.env` files and `.clonehome` organization files from the web interface
+- **💾 Configuration Exports**: Save both `.env` files and `.clonehome` organization files from the web interface
 - **🔍 Smart Filtering**: Advanced search and filtering capabilities
 - **⚡ One-Click Cloning**: Clone all repositories with a single command
 - **🛡️ Safe Operations**: Preview mode and safety checks prevent accidents
-- **🔄 Real-time Updates**: Automatic .env file monitoring without server restart
-- **⚡ Performance Optimized**: Memory-efficient with optimized operations
 
 ## 📸 Screenshot
 
 ![Clone Home Web Interface](web/assets/images/screenshot.png)
+
+## 🎯 What Clone Home Does
+
+**Clone Home is for LOCAL repository organization:**
+
+✅ **What it DOES:**
+
+- Downloads/clones your GitHub repositories to your local machine
+- Organizes them into custom folder structures locally
+- Reads repository information via GitHub API (read-only)
+- Creates local `.env` and `.clonehome` configuration files
+- Manages your local development environment setup
+
+❌ **What it does NOT do:**
+
+- Modify anything on GitHub (repos, settings, etc.)
+- Push changes back to GitHub
+- Create or delete repositories on GitHub
+- Change GitHub repository settings or permissions
+
+**Think of it as:** A smart way to organize all your GitHub repos locally for development work.
 
 ## 🚀 Quick Start
 
@@ -99,9 +118,11 @@ This allows you to quickly set up new development environments with both authent
 
 ## Security
 
+- **Read-only operations**: Clone Home only reads from GitHub via API - never writes or modifies
 - GitHub tokens are stored locally in the project's `.env` file
 - Tokens are never logged or transmitted anywhere except to GitHub's API
-- Use tokens with minimal required permissions
+- Use tokens with minimal required permissions (`repo` and `read:org` scopes only)
+- All operations are local to your machine - nothing is sent back to GitHub
 
 ## License
 

@@ -1,6 +1,6 @@
 # Command Line Interface Guide
 
-The Clone Home CLI provides powerful command-line tools for managing your GitHub repositories with advanced filtering, organization, and automation capabilities.
+The Clone Home CLI provides powerful command-line tools for **organizing your local repositories** by cloning and managing your GitHub repositories locally. **Clone Home only reads from GitHub via API** - it never modifies anything on GitHub itself.
 
 ## Quick Reference
 
@@ -26,6 +26,7 @@ clone-home setup
 ```
 
 This will prompt you for:
+
 - **GitHub Personal Access Token**: Your GitHub API token
 - **Target Directory**: Where repositories will be cloned
 - **Include Organizations**: Whether to include org repositories
