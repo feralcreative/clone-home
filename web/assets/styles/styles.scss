@@ -1,4 +1,5 @@
 // Import partials
+@use "sass:color";
 @use "variables" as *;
 @use "mixins" as *;
 @use "components" as *;
@@ -17,18 +18,30 @@ body {
   line-height: 1.6;
 }
 
-// Typography - Use Scope One for all headings
+// Typography - Use Aleo for all headings
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: "Scope One", Georgia, serif;
-  font-weight: 400;
+  font-family: "Aleo", Georgia, serif;
+  font-weight: 200;
   margin-bottom: 0.5em;
 }
 
+.code {
+  font-family: "Courier New", Courier, monospace;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  padding: 0.1em 0.2em;
+  background: $bg-secondary;
+  color: $accent-03;
+  font-size: 1em;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+}
 // Logo styling
 .logo {
   height: 1.2em;
@@ -39,17 +52,17 @@ h6 {
 
 // Links with proper contrast
 a {
-  color: $accent-primary;
+  color: $accent-01;
   text-decoration: none;
   transition: color 0.2s ease;
 
   &:hover {
-    color: $accent-primary-hover-text;
+    color: $accent-01-hover-text;
     text-decoration: underline;
   }
 
   &:visited {
-    color: $accent-secondary;
+    color: $accent-02;
   }
 }
 
@@ -59,17 +72,20 @@ a {
   padding: 20px;
 }
 
+#organization-notice {
+  background-color: $bg-secondary !important;
+}
 // Header
 .header {
   text-align: center;
   margin-bottom: 40px;
 
   h1 {
-    font-family: "Scope One", Georgia, serif;
+    font-family: "Aleo", Georgia, serif;
     font-size: 2.5rem;
-    font-weight: 400; // Scope One is naturally bold
+    font-weight: 400; // Aleo is naturally bold
     margin-bottom: 10px;
-    background: linear-gradient(45deg, $accent-primary, $accent-primary-hover);
+    background: linear-gradient(45deg, $accent-01, $accent-01-hover);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -94,19 +110,22 @@ a {
   border: none;
   color: $text-secondary;
   cursor: pointer;
-  font-family: "Scope One", Georgia, serif;
-  font-size: 1.2rem;
-  font-weight: 400;
+  font-family: "Aleo", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 200;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  width: 25%;
 
   &.active {
-    color: $accent-primary;
-    border-bottom-color: $accent-primary;
+    color: $accent-01;
+    border-bottom-color: $accent-01;
+    font-weight: 500;
   }
 
   &:hover {
     color: $text-primary;
+    font-weight: 500;
   }
 }
 
@@ -146,11 +165,11 @@ a {
     border-radius: 6px;
     color: $text-primary;
     font-size: 1rem;
-    font-weight: 300;
+    font-weight: 200; // Thinned down from 300 to 200
 
     &:focus {
       outline: none;
-      border-color: $accent-primary;
+      border-color: $accent-01;
     }
 
     &.has-env-value {
@@ -209,7 +228,7 @@ a {
 
   &:hover {
     .checkbox-custom {
-      border-color: $accent-primary;
+      border-color: $accent-01;
       transform: scale(1.05);
     }
   }
@@ -364,8 +383,8 @@ a {
 .repo-info {
   h3 {
     margin-bottom: 0;
-    color: $subheading-color;
-    font-weight: 300;
+    color: $accent-03;
+    font-weight: 500;
   }
 
   p.description {
@@ -410,7 +429,7 @@ a {
 .stat-number {
   font-size: 2rem;
   font-weight: 300; // Light weight for large statistics
-  color: $accent-primary;
+  color: $accent-01;
   margin-bottom: 8px;
 }
 
@@ -436,17 +455,18 @@ a {
     border-radius: 6px;
     color: $text-primary;
     font-size: 1.3rem;
-    font-weight: light;
+    font-weight: 100 !important; // Force thinnest weight to override any other rules
 
     &:focus {
       outline: none;
-      border-color: $accent-primary;
+      border-color: $accent-01;
       background: $bg-tertiary; // Slightly lighter on focus
     }
 
     &::placeholder {
       color: $text-secondary;
-      font-weight: light;
+      font-weight: 100 !important; // Force thinnest weight
+      opacity: 0.7; // Make it even more subtle
     }
   }
 
@@ -469,7 +489,7 @@ a {
 
   h3 {
     margin-bottom: 16px;
-    color: $subheading-color;
+    color: $accent-03;
     font-weight: 300;
   }
 }
@@ -482,8 +502,8 @@ a {
   transition: all 0.2s;
 
   &.drag-over {
-    border-color: $accent-primary;
-    background: #{$accent-primary}11;
+    border-color: $accent-01;
+    background: #{$accent-01}11;
   }
 }
 
@@ -494,8 +514,8 @@ a {
   padding: 16px;
 
   &.drag-over {
-    border-color: $accent-primary;
-    background: #{$accent-primary}11;
+    border-color: $accent-01;
+    background: #{$accent-01}11;
   }
 }
 
@@ -528,13 +548,13 @@ a {
   }
 
   &.selected {
-    background: #{$accent-primary}22;
-    border-color: $accent-primary;
+    background: #{$accent-01}22;
+    border-color: $accent-01;
   }
 
   .repo-name {
     font-weight: 400;
-    color: $accent-primary;
+    color: $accent-01;
     margin-bottom: 1px;
     font-size: 0.8rem;
   }
@@ -600,7 +620,7 @@ a {
 }
 
 .selected-count {
-  color: $accent-primary;
+  color: $accent-01;
   font-weight: 400;
   margin-right: 12px;
 }
@@ -634,6 +654,40 @@ a {
   font-size: 0.85rem;
 }
 
+// Folder action buttons
+.rename-folder-btn,
+.delete-folder-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin-left: 4px;
+
+  .material-icons {
+    font-size: 1rem;
+  }
+}
+
+.rename-folder-btn {
+  color: $accent-01;
+
+  &:hover {
+    background: #{$accent-01}22;
+    transform: scale(1.1);
+  }
+}
+
+.delete-folder-btn {
+  color: $accent-danger;
+
+  &:hover {
+    background: #{$accent-danger}22;
+    transform: scale(1.1);
+  }
+}
+
 .folder-content {
   padding: 4px;
   min-height: 30px;
@@ -641,8 +695,8 @@ a {
   transition: all 0.2s;
 
   &.drag-over {
-    border-color: $accent-primary;
-    background: #{$accent-primary}11;
+    border-color: $accent-01;
+    background: #{$accent-01}11;
   }
 
   &.collapsed {
@@ -662,7 +716,7 @@ a {
   font-size: 0.75rem;
 
   .repo-name {
-    color: $accent-primary;
+    color: $accent-01;
     font-weight: 500;
   }
 
@@ -776,17 +830,17 @@ a {
 
 .auto-org-title {
   margin: 0;
-  color: $subheading-color;
+  color: $accent-03;
   font-size: 1rem;
 }
 
 .btn-purple {
-  background: $accent-secondary;
-  color: $accent-secondary-text;
+  background: $accent-02;
+  color: $accent-02-text;
 
   &:hover {
-    background: $accent-secondary-hover;
-    color: $accent-secondary-hover-text;
+    background: $accent-02-hover;
+    color: $accent-02-hover-text;
   }
 }
 
@@ -856,14 +910,238 @@ a {
 }
 
 .clone-preview-container {
-  max-height: 300px;
-  overflow-y: auto;
   margin-top: 16px;
+  // Removed max-height and overflow-y to fit content instead of scrolling
 }
 
-.clone-preview-item {
-  padding: 8px;
-  border-bottom: 1px solid $border-color;
+// Clone hierarchy preview styles - succinct version
+.clone-hierarchy-succinct {
+  font-family: "Open Sans", sans-serif;
+  background: $bg-secondary;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  padding: 16px;
+  // Removed max-height and overflow-y to fit content instead of scrolling
+}
+
+.clone-folder-path {
+  padding: 2px 6px;
+  margin: 1px 0;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  background: $bg-primary;
+  border-radius: 3px;
+  line-height: 1.3; // Tighter line height for more compact display
+
+  &:hover {
+    background: $bg-tertiary;
+  }
+
+  &.parent {
+    color: $accent-01;
+    border-left: 3px solid $accent-01;
+    font-weight: 500;
+    margin-top: 4px; // Reduced from 8px to 4px
+
+    &:first-child {
+      margin-top: 1px; // Reduced from 2px to 1px
+    }
+  }
+
+  &.child {
+    color: $accent-03;
+    border-left: 3px solid $accent-03;
+    margin-left: 16px; // Reduced from 20px to 16px for tighter indentation
+    font-weight: 400;
+    opacity: 0.9;
+  }
+}
+
+// Clone progress tracking styles
+.clone-progress-container {
+  font-family: "Open Sans", sans-serif;
+  padding: 20px;
+  background: $bg-secondary;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+
+  h3 {
+    color: $text-primary;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+}
+
+.progress-bar-container {
+  margin-bottom: 16px;
+
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background: $bg-tertiary;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid $border-color;
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, $accent-01, color.adjust($accent-01, $lightness: 10%));
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 10px;
+    }
+  }
+
+  .progress-text {
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 500;
+    color: $text-primary;
+    font-size: 0.9rem;
+  }
+}
+
+.current-activity {
+  padding: 12px 16px;
+  background: $bg-primary;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  color: $text-primary;
+
+  .completion-summary {
+    text-align: center;
+
+    .summary-stats {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: $text-secondary;
+
+      .success-count {
+        color: $accent-success;
+        font-weight: 600;
+      }
+
+      .error-count {
+        color: $accent-danger;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .cancellation-summary {
+    text-align: center;
+    color: $accent-success;
+
+    div {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: $text-secondary;
+    }
+  }
+
+  .error-summary {
+    text-align: center;
+    color: $accent-danger;
+
+    div {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: $text-secondary;
+    }
+  }
+}
+
+.clone-actions {
+  text-align: center;
+  margin-bottom: 20px;
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.btn-danger {
+      background: $accent-danger;
+      color: white;
+
+      &:hover {
+        background: color.adjust($accent-danger, $lightness: -10%);
+      }
+    }
+
+    &.btn-warning {
+      background: $accent-warning;
+      color: white;
+
+      &:hover {
+        background: color.adjust($accent-warning, $lightness: -10%);
+      }
+    }
+  }
+}
+
+.activity-log {
+  h4 {
+    color: $text-primary;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .activity-items {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    background: $bg-primary;
+    padding: 8px;
+  }
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .activity-icon {
+    font-size: 1rem;
+    min-width: 20px;
+  }
+
+  .activity-repo {
+    font-weight: 500;
+    color: $text-primary;
+    min-width: 200px;
+  }
+
+  .activity-message {
+    color: $text-secondary;
+    flex: 1;
+    font-size: 0.85rem;
+  }
+
+  &.activity-success {
+    background: rgba($accent-success, 0.1);
+    border-left: 3px solid $accent-success;
+  }
+
+  &.activity-error {
+    background: rgba($accent-danger, 0.1);
+    border-left: 3px solid $accent-danger;
+  }
 }
 
 .clone-result-success {

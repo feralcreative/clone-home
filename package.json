@@ -1,7 +1,7 @@
 {
   "name": "clone-home",
   "version": "1.0.0",
-  "description": "An app that clones all your GitHub repositories to set up a machine as if it were Feral Studio",
+  "description": "Local repository organizer that clones and structures all your GitHub repos with drag-and-drop web interface and CLI tools. Read-only GitHub API access.",
   "main": "src/index.js",
   "type": "module",
   "bin": {
@@ -13,16 +13,30 @@
     "test": "node --test test/*.test.js",
     "build-css": "sass web/assets/styles/styles.scss web/assets/styles/styles.css",
     "watch-css": "sass --watch web/assets/styles/styles.scss:web/assets/styles/styles.css",
-    "build": "npm run build-css"
+    "build": "npm run build-css",
+    "browsersync": "cd libs/browser-sync && npm run start-clone-home"
   },
   "keywords": [
     "github",
     "clone",
     "repositories",
     "setup",
-    "development"
+    "development",
+    "organization",
+    "local",
+    "cli",
+    "web-interface",
+    "drag-drop"
   ],
   "author": "Ziad",
+  "homepage": "https://github.com/feralcreative/clone-home#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/feralcreative/clone-home.git"
+  },
+  "bugs": {
+    "url": "https://github.com/feralcreative/clone-home/issues"
+  },
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^20.0.2",

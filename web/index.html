@@ -6,7 +6,11 @@
     <title>Clone Home - Repository Manager</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Scope+One&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wdth,wght@0,75..100,300..800;1,75..100,300..800&display=swap" rel="stylesheet">
+
+
+
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="assets/styles/styles.css?v=16">
 
@@ -20,19 +24,25 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><img src="assets/images/logo-clone-home.svg" alt="Clone Home Logo" class="logo">Clone Home</h1>
+            <h1><img src="assets/images/lockup-clone-home.svg" alt="Clone Home" class="logo"></h1>
             <p>Organize and clone all your GitHub repositories</p>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('setup')">Setup</button>
-            <button class="tab" onclick="showTab('repositories')">Repositories</button>
-            <button class="tab" onclick="showTab('organize')">Organize</button>
-            <button class="tab" onclick="showTab('clone')">Clone</button>
+            <button class="tab active" onclick="showTab('setup', false)">Configure</button>
+            <button class="tab" onclick="showTab('repositories', false)">View</button>
+            <button class="tab" onclick="showTab('organize', false)">Organize</button>
+            <button class="tab" onclick="showTab('clone', false)">Clone</button>
         </div>
 
         <!-- Setup Tab -->
         <div id="setup" class="tab-content active">
+
+            <!-- Navigation buttons -->
+            <div class="tab-navigation">
+                <button class="btn btn-navigation" onclick="nextTab()" id="setup-next">View <span class="material-icons">chevron_right</span></button>
+            </div>
+
             <div class="card">
                 <h2>Configuration</h2>
                 <div id="setup-form">
@@ -76,14 +86,22 @@
                     </div>
                     <div class="flex-row">
                         <button class="btn" onclick="saveConfig()">Save configuration</button>
-                        <button class="btn btn-purple" onclick="exportToEnv()">Save settings to .env file</button>
+                        <button class="btn btn-purple" onclick="exportToEnv()">Export .env file</button>
                     </div>
+                    <p class="config-footnote">* Export buttons create downloadable files. You'll have a final chance to export both .env and .clonehome files after cloning completes.</p>
                 </div>
             </div>
         </div>
 
         <!-- Repositories Tab -->
         <div id="repositories" class="tab-content">
+
+            <!-- Navigation buttons -->
+            <div class="tab-navigation">
+                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> Configure</button>
+                <button class="btn btn-navigation" onclick="nextTab()">Organize <span class="material-icons">chevron_right</span></button>
+            </div>
+
             <div class="card">
                 <h2>Your repositories</h2>
                 <div class="filters">
@@ -103,22 +121,17 @@
 
         <!-- Organize Tab -->
         <div id="organize" class="tab-content">
+
+            <!-- Navigation buttons -->
+            <div class="tab-navigation">
+                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> View</button>
+                <button class="btn btn-navigation" onclick="nextTab()">Clone <span class="material-icons">chevron_right</span></button>
+            </div>
+
             <div class="card">
                 <h2>Repository organization</h2>
                 <div class="flex-between">
-
-                    <!-- Left side: Config and folder management buttons -->
                     <div class="flex-column-start">
-                        <h3 class="auto-org-title"><span class="material-icons">settings</span>Configuration and management</h3>
-                        <div class="flex-row">
-                            <button class="btn btn-secondary" onclick="loadConfigFile()"><span class="material-icons">upload_file</span>Load config</button>
-                            <button class="btn btn-secondary" onclick="saveConfigFile()"><span class="material-icons">save</span>Save config</button>
-                            <button class="btn btn-secondary" onclick="addNewFolder()"><span class="material-icons">create_new_folder</span>Add folder</button>
-                        </div>
-                    </div>
-
-                    <!-- Right side: Auto-organization options -->
-                    <div class="flex-column-end">
                         <h3 class="auto-org-title"><span class="material-icons">auto_awesome</span>Auto-organization options</h3>
                         <div class="flex-row">
                             <button class="btn btn-secondary" onclick="autoOrganizeByOwner()"><span class="material-icons">person</span>By owner</button>
@@ -126,6 +139,21 @@
                             <button class="btn btn-secondary" onclick="autoOrganizeByYear()"><span class="material-icons">calendar_today</span>By year</button>
                         </div>
                     </div>
+                    <div class="flex-column-end">
+                        <h3 class="auto-org-title"><span class="material-icons">settings</span>Configuration and management</h3>
+                        <div class="flex-row">
+                            <button class="btn btn-primary" onclick="saveOrganizationConfig()"><span class="material-icons">save</span>Save</button>
+                            <button class="btn btn-secondary" onclick="loadConfigFile()"><span class="material-icons">upload_file</span>Import</button>
+                            <button class="btn btn-secondary" onclick="saveConfigFile()"><span class="material-icons">download</span>Export</button>
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="flex-between">
+                    <p class="config-footnote">Note: Use the <strong>Save</strong> button to apply changes to this run. Export buttons create downloadable files. You'll have a another chance to export both
+                        <span class="code">.env</span> and <span class="code">.clonehome</span> files after cloning completes.
+                    </p>
                 </div>
                 <input type="file" id="configFileInput" accept=".clonehome,.json" class="hidden" onchange="importConfigFile(event)">
 
@@ -174,14 +202,51 @@
 
         <!-- Clone Tab -->
         <div id="clone" class="tab-content">
+
+            <!-- Navigation buttons -->
+            <div class="tab-navigation">
+                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> Organize</button>
+            </div>
+
             <div class="card">
                 <h2>Clone repositories</h2>
                 <p>Clone your repositories to the configured directory.</p>
+
+                <div id="organization-notice" class="info-notice hidden">
+                    <strong>Note:</strong> No custom directory structure set up. Repositories will be cloned using the default owner/repo structure (e.g.,&nbsp;<span class="code">feralcreative/clone-home</span>). To customize your folder structure, go back to the <strong><a href="#organize">Organize</a></strong> tab and arrange your repositories into&nbsp;folders.
+                </div>
+
                 <div class="margin-vertical">
                     <button class="btn btn-secondary" onclick="previewClone()">Preview clone</button>
                     <button class="btn" onclick="startClone()">Start cloning</button>
                 </div>
                 <div id="clone-results"></div>
+
+                <!-- Embedded Clone Progress Terminal -->
+                <div id="clone-progress-terminal" class="clone-progress-terminal hidden">
+                    <div class="terminal-header">
+                        <div class="terminal-title">📊 Clone Progress</div>
+                        <div class="terminal-controls">
+                            <button class="terminal-control clear" onclick="clearTerminal()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="progress-overview">
+                        <div class="overall-progress">
+                            <div class="progress-label">Overall Progress</div>
+                            <div class="progress-bar">
+                                <div id="overall-progress-fill" class="progress-fill"></div>
+                            </div>
+                            <div id="overall-progress-text" class="progress-text">0 / 0</div>
+                        </div>
+                    </div>
+                    <div class="repository-progress-list hidden" id="repository-progress-list">
+
+                        <!-- Individual repository progress bars will be added here -->
+                    </div>
+                    <div class="terminal-content">
+                        <div id="terminal-output" class="terminal-output"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

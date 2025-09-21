@@ -5,6 +5,13 @@ let draggedRepo = null;
 let selectedRepos = new Set();
 let envStatusEventSource = null;
 
+// Terminal-related variables
+let terminalVisible = false;
+let currentSessionId = null;
+let cloneResults = [];
+let eventSource = null;
+let cloneStartTime = null;
+
 // Helper function to format date as YYYY-MM-DD
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -25,7 +32,33 @@ function debounce(func, wait) {
 }
 
 // Tab Management
-function showTab(tabName) {
+const tabOrder = ["setup", "repositories", "organize", "clone"];
+let currentTabIndex = 0;
+
+// Initialize tab from URL hash
+function initializeTabFromHash() {
+  const hash = window.location.hash.substring(1); // Remove the # symbol
+
+  if (hash && tabOrder.includes(hash)) {
+    showTab(hash, true); // Skip validation on initial load
+  } else {
+    // Default to first tab if no valid hash
+    showTab(tabOrder[0], true);
+  }
+}
+
+// Listen for hash changes (back/forward browser navigation)
+window.addEventListener("hashchange", function () {
+  const hash = window.location.hash.substring(1);
+  if (hash && tabOrder.includes(hash)) {
+    showTab(hash, true);
+  }
+});
+
+function showTab(tabName, skipValidation = false) {
+  // Update current tab index
+  currentTabIndex = tabOrder.indexOf(tabName);
+
   // Hide all tab contents
   document.querySelectorAll(".tab-content").forEach((content) => {
     content.classList.remove("active");
@@ -39,8 +72,11 @@ function showTab(tabName) {
   // Show selected tab content
   document.getElementById(tabName).classList.add("active");
 
-  // Add active class to clicked tab
-  event.target.classList.add("active");
+  // Add active class to corresponding tab button
+  const tabButtons = document.querySelectorAll(".tab");
+  if (tabButtons[currentTabIndex]) {
+    tabButtons[currentTabIndex].classList.add("active");
+  }
 
   // Load data when switching to certain tabs
   if (tabName === "repositories" && repositories.length === 0) {
@@ -59,6 +95,86 @@ function showTab(tabName) {
         loadStats();
       });
     }
+  } else if (tabName === "clone") {
+    checkOrganizationStatus();
+  }
+
+  // Update URL hash to remember the current tab
+  if (history.replaceState) {
+    history.replaceState(null, null, `#${tabName}`);
+  } else {
+    window.location.hash = tabName;
+  }
+}
+
+// Check organization status and show notice if needed
+async function checkOrganizationStatus() {
+  try {
+    const response = await fetch("/api/organization");
+    const data = await response.json();
+
+    const notice = document.getElementById("organization-notice");
+    if (notice) {
+      // Show notice if no custom organization is set up
+      const hasCustomOrganization = Object.keys(data.organization).length > 0;
+      if (hasCustomOrganization) {
+        notice.classList.add("hidden");
+      } else {
+        notice.classList.remove("hidden");
+      }
+    }
+  } catch (error) {
+    console.error("Error checking organization status:", error);
+  }
+}
+
+function nextTab() {
+  if (currentTabIndex < tabOrder.length - 1) {
+    const nextTabName = tabOrder[currentTabIndex + 1];
+
+    // Validate current tab before proceeding
+    if (validateCurrentTab()) {
+      showTab(nextTabName, true);
+    }
+  }
+}
+
+function previousTab() {
+  if (currentTabIndex > 0) {
+    const previousTabName = tabOrder[currentTabIndex - 1];
+    showTab(previousTabName, true);
+  }
+}
+
+function validateCurrentTab() {
+  const currentTab = tabOrder[currentTabIndex];
+
+  switch (currentTab) {
+    case "setup":
+      // Check if configuration is saved
+      const token = document.getElementById("token").value;
+      const targetDir = document.getElementById("targetDir").value;
+
+      if (!token && !targetDir) {
+        showError("Please configure your GitHub token and target directory before proceeding.");
+        return false;
+      }
+      return true;
+
+    case "repositories":
+      // Check if repositories are loaded
+      if (repositories.length === 0) {
+        showError("Please load repositories before proceeding.");
+        return false;
+      }
+      return true;
+
+    case "organize":
+      // Organization is optional, always allow proceeding
+      return true;
+
+    default:
+      return true;
   }
 }
 
@@ -76,6 +192,15 @@ async function saveConfig() {
     return;
   }
 
+  // Get the save button for immediate feedback
+  const saveButton = document.querySelector('button[onclick="saveConfig()"]');
+  const originalText = saveButton ? saveButton.textContent : null;
+
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<span class="material-icons">hourglass_empty</span> Saving...';
+  }
+
   try {
     const response = await fetch("/api/config", {
       method: "POST",
@@ -87,13 +212,35 @@ async function saveConfig() {
 
     if (response.ok) {
       showSuccess("Configuration saved successfully!");
+
+      // Show success on button temporarily
+      if (saveButton) {
+        saveButton.innerHTML = '<span class="material-icons">check_circle</span> Saved!';
+        setTimeout(() => {
+          saveButton.innerHTML = originalText;
+          saveButton.disabled = false;
+        }, 2000);
+      }
+
       // Clear repositories to force reload
       repositories = [];
     } else {
       showError(result.error);
+
+      // Reset button on error
+      if (saveButton) {
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+      }
     }
   } catch (error) {
     showError("Failed to save configuration: " + error.message);
+
+    // Reset button on error
+    if (saveButton) {
+      saveButton.innerHTML = originalText;
+      saveButton.disabled = false;
+    }
   }
 }
 
@@ -440,25 +587,15 @@ async function previewClone() {
     const result = await response.json();
 
     if (response.ok) {
+      // Generate folder hierarchy preview
+      const hierarchyHtml = generateCloneHierarchyPreview(result.repositories);
+
       results.innerHTML = `
                 <div class="success">
                     <h3>Clone Preview</h3>
                     <p>${result.message}</p>
                     <div class="clone-preview-container">
-                        ${result.repositories
-                          .map(
-                            (repo) => `
-                            <div class="clone-preview-item">
-                                <strong>${repo.name}</strong> ${
-                              repo.private
-                                ? '<span class="material-icons repo-icon-small">lock</span>'
-                                : '<span class="material-icons repo-icon-small">public</span>'
-                            }
-                                ${repo.language ? `<span class="language-meta"> &emsp; ${repo.language}</span>` : ""}
-                            </div>
-                        `
-                          )
-                          .join("")}
+                        ${hierarchyHtml}
                     </div>
                 </div>
             `;
@@ -470,54 +607,745 @@ async function previewClone() {
   }
 }
 
+function generateCloneHierarchyPreview(repositories) {
+  // Generate vertical org-chart based on actual organizationConfig
+  let html = '<div class="clone-hierarchy-succinct">';
+
+  if (Object.keys(organizationConfig).length === 0) {
+    // No organization - show default owner/repo structure with individual repos
+    const ownerGroups = {};
+    repositories.forEach((repo) => {
+      const owner = repo.owner.login;
+      const repoName = repo.name; // Just the repo name without owner
+      if (!ownerGroups[owner]) {
+        ownerGroups[owner] = [];
+      }
+      ownerGroups[owner].push(repoName);
+    });
+
+    Object.keys(ownerGroups)
+      .sort()
+      .forEach((owner) => {
+        html += `<div class="clone-folder-path parent">${owner}/</div>`;
+        ownerGroups[owner].sort().forEach((repoName) => {
+          html += `<div class="clone-folder-path child">${repoName}</div>`; // Removed trailing slash for repo names
+        });
+      });
+  } else {
+    // Use actual organizationConfig to build org-chart with individual repos
+    const repoMap = {};
+    repositories.forEach((repo) => {
+      repoMap[repo.full_name] = repo.name; // Map full name to just repo name
+    });
+
+    const folderStructure = {};
+
+    // Build folder structure with actual repositories
+    Object.entries(organizationConfig).forEach(([folderPath, repoNames]) => {
+      if (folderPath.includes("_placeholder")) return; // Skip placeholder folders
+
+      if (!folderStructure[folderPath]) {
+        folderStructure[folderPath] = [];
+      }
+
+      repoNames.forEach((repoName) => {
+        if (repoMap[repoName]) {
+          folderStructure[folderPath].push(repoMap[repoName]); // Use just repo name without owner
+        }
+      });
+    });
+
+    // Group folders by parent and render with repositories
+    const parentFolders = {};
+    Object.keys(folderStructure).forEach((folderPath) => {
+      const parts = folderPath.split("/");
+      const parentName = parts[0];
+      const childPath = parts.length > 1 ? parts.slice(1).join("/") : null;
+
+      if (!parentFolders[parentName]) {
+        parentFolders[parentName] = { direct: [], children: {} };
+      }
+
+      if (childPath) {
+        if (!parentFolders[parentName].children[childPath]) {
+          parentFolders[parentName].children[childPath] = [];
+        }
+        parentFolders[parentName].children[childPath] = folderStructure[folderPath];
+      } else {
+        parentFolders[parentName].direct = folderStructure[folderPath];
+      }
+    });
+
+    // Render the org-chart with repositories
+    Object.keys(parentFolders)
+      .sort()
+      .forEach((parentName) => {
+        html += `<div class="clone-folder-path parent">${parentName}/</div>`;
+
+        // Show direct repositories in parent folder
+        parentFolders[parentName].direct.sort().forEach((repoName) => {
+          html += `<div class="clone-folder-path child">${repoName}</div>`;
+        });
+
+        // Show child folders and their repositories
+        Object.entries(parentFolders[parentName].children)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .forEach(([childPath, repos]) => {
+            html += `<div class="clone-folder-path child">${childPath}/</div>`;
+            repos.sort().forEach((repoName) => {
+              html += `<div class="clone-folder-path child" style="margin-left: 32px;">${repoName}</div>`;
+            });
+          });
+      });
+  }
+
+  html += "</div>";
+  return html;
+}
+
+let currentCloneSession = null;
+
+// Terminal functions
+function showTerminal() {
+  const terminal = document.getElementById("clone-progress-terminal");
+  terminal.classList.remove("hidden");
+  terminalVisible = true;
+}
+
+function hideTerminal() {
+  const terminal = document.getElementById("clone-progress-terminal");
+  terminal.classList.add("hidden");
+  terminalVisible = false;
+}
+
+function toggleTerminal() {
+  // Not needed for embedded terminal
+}
+
+function closeTerminal() {
+  hideTerminal();
+  clearTerminal();
+}
+
+// Progress tracking functions
+function initializeProgressTracking(repositories) {
+  const progressList = document.getElementById("repository-progress-list");
+  progressList.innerHTML = "";
+
+  // Create progress items for each repository
+  repositories.forEach((repo, index) => {
+    const progressItem = document.createElement("div");
+    progressItem.className = "repo-progress-item";
+    progressItem.id = `repo-progress-${index}`;
+    progressItem.innerHTML = `
+      <div class="repo-name">${repo.full_name}</div>
+      <div class="repo-status pending" id="repo-status-${index}">Pending</div>
+      <div class="repo-progress-bar">
+        <div class="repo-progress-fill" id="repo-progress-fill-${index}"></div>
+      </div>
+    `;
+    progressList.appendChild(progressItem);
+  });
+
+  // Initialize overall progress
+  updateOverallProgress(0, repositories.length);
+}
+
+function updateOverallProgress(current, total) {
+  const progressFill = document.getElementById("overall-progress-fill");
+  const progressText = document.getElementById("overall-progress-text");
+
+  const percentage = total > 0 ? (current / total) * 100 : 0;
+  progressFill.style.width = `${percentage}%`;
+  progressText.textContent = `${current} / ${total}`;
+}
+
+function updateRepositoryProgress(repoIndex, status, message) {
+  const progressItem = document.getElementById(`repo-progress-${repoIndex}`);
+  const statusElement = document.getElementById(`repo-status-${repoIndex}`);
+  const progressFill = document.getElementById(`repo-progress-fill-${repoIndex}`);
+
+  if (!progressItem || !statusElement || !progressFill) return;
+
+  // Update status
+  statusElement.className = `repo-status ${status}`;
+  statusElement.textContent = message;
+
+  // Update progress bar
+  progressFill.className = `repo-progress-fill ${status}`;
+
+  // Update progress item background
+  progressItem.className = `repo-progress-item ${status}`;
+
+  // Set progress fill width based on status
+  switch (status) {
+    case "in-progress":
+      progressFill.style.width = "50%";
+      break;
+    case "success":
+      progressFill.style.width = "100%";
+      break;
+    case "error":
+      progressFill.style.width = "100%";
+      break;
+    default:
+      progressFill.style.width = "0%";
+  }
+}
+
+function clearTerminal() {
+  const output = document.getElementById("terminal-output");
+  output.innerHTML = "";
+}
+
+function addTerminalLine(message, type = "info") {
+  const output = document.getElementById("terminal-output");
+  const line = document.createElement("div");
+  line.className = `terminal-line ${type}`;
+
+  // Add timestamp
+  const timestamp = new Date().toLocaleTimeString();
+  line.textContent = `[${timestamp}] ${message}`;
+
+  output.appendChild(line);
+
+  // Auto-scroll to bottom
+  output.scrollTop = output.scrollHeight;
+}
+
+function formatDuration(startTime) {
+  const duration = Date.now() - startTime;
+  const seconds = Math.floor(duration / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes > 0) {
+    return `${minutes}m ${remainingSeconds}s`;
+  } else {
+    return `${remainingSeconds}s`;
+  }
+}
+
 async function startClone() {
   const results = document.getElementById("clone-results");
-  results.innerHTML = '<div class="loading">Starting clone process...</div>';
+  const startButton = document.querySelector('button[onclick="startClone()"]');
+
+  // Provide immediate visual feedback
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = "Starting...";
+  }
+
+  results.innerHTML = '<div class="loading">Initializing clone process...</div>';
+
+  // Show terminal and initialize
+  clearTerminal();
+  showTerminal();
+  cloneStartTime = Date.now();
+  addTerminalLine("Initializing clone process...", "info");
 
   try {
+    console.log("Starting clone process...");
+
+    // First, get the repository list for progress tracking
+    addTerminalLine("📋 Loading repository list...", "info");
+    const repoResponse = await fetch("/api/repositories");
+    const repoData = await repoResponse.json();
+
+    if (!repoResponse.ok) {
+      throw new Error(repoData.error || "Failed to load repositories");
+    }
+
+    const repositoryList = repoData.repositories;
+    addTerminalLine(`📊 Found ${repositoryList.length} repositories to clone`, "info");
+
+    // Initialize progress tracking
+    initializeProgressTracking(repositoryList);
+
+    // Start the clone process
     const response = await fetch("/api/clone", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dryRun: false }),
     });
 
+    console.log("Clone API response:", response.status, response.statusText);
+
     const data = await response.json();
-    console.log("Clone response:", data);
+    console.log("Clone API data:", data);
 
     if (!response.ok) {
       throw new Error(data.error || "Clone failed");
     }
 
-    // Display results
-    let html = `
-      <div class="success success-margin">
-        <h3>${data.message || "Clone operation completed"}</h3>
-        ${
-          data.summary
-            ? `<p>Total: ${data.summary.total} | Success: ${data.summary.success} | Errors: ${data.summary.errors}</p>`
-            : ""
-        }
+    currentCloneSession = data.sessionId;
+
+    addTerminalLine(`🚀 Started cloning ${data.total} repositories (Session: ${data.sessionId})`, "info");
+
+    // Set up progress tracking UI
+    results.innerHTML = `
+      <div class="clone-progress-container">
+        <h3>Cloning ${data.total} repositories...</h3>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="clone-progress-bar">
+            <div class="progress-fill" id="clone-progress-fill"></div>
+          </div>
+          <div class="progress-text" id="clone-progress-text">0 / ${data.total}</div>
+        </div>
+        <div class="current-activity" id="clone-current-activity">Initializing...</div>
+        <div class="clone-actions">
+          <button class="btn btn-danger" onclick="cancelClone()" id="cancel-clone-btn">Cancel Clone</button>
+        </div>
+        <div class="activity-log" id="clone-activity-log">
+          <h4>Activity Log</h4>
+          <div class="activity-items" id="clone-activity-items"></div>
+        </div>
       </div>
     `;
 
-    if (data.results && data.results.length > 0) {
-      html += '<div class="clone-results-list">';
-      data.results.forEach((result) => {
-        const statusClass = result.status === "success" ? "clone-result-success" : "clone-result-error";
-        html += `
-          <div class="clone-result ${statusClass}">
-            <strong>${result.name}</strong>
-            <div class="clone-result-message">${result.message}</div>
-            ${result.path ? `<div class="clone-result-path">→ ${result.path}</div>` : ""}
+    // Start listening for progress updates
+    listenForCloneProgress(data.sessionId, data.total);
+  } catch (error) {
+    console.error("Clone error:", error);
+    results.innerHTML = `<div class="error">Clone failed: ${error.message}</div>`;
+
+    // Re-enable the start button
+    if (startButton) {
+      startButton.disabled = false;
+      startButton.textContent = "Start cloning";
+    }
+  }
+}
+
+function listenForCloneProgress(sessionId, total) {
+  console.log("Setting up SSE connection for session:", sessionId);
+  const eventSource = new EventSource(`/api/clone/progress/${sessionId}`);
+
+  eventSource.onopen = function (event) {
+    console.log("SSE connection opened:", event);
+  };
+
+  eventSource.onmessage = function (event) {
+    console.log("SSE message received:", event.data);
+    const data = JSON.parse(event.data);
+
+    switch (data.type) {
+      case "progress":
+        updateCloneProgress(data.current, total, data.repository, data.message);
+        addTerminalLine(`[${data.current}/${total}] ${data.message}`, "progress");
+
+        // Add in-progress item to activity log
+        addActivityLogItemInProgress(data.repository, "Cloning...");
+        break;
+      case "repository_complete":
+        // Update the in-progress item to completed status
+        updateActivityLogItem(data.repository.name, data.repository);
+
+        updateCloneProgress(
+          data.progress.current,
+          total,
+          null,
+          `${data.progress.success} successful, ${data.progress.errors} failed`
+        );
+
+        // Update overall progress
+        updateOverallProgress(data.progress.current, total);
+
+        // Add terminal log for repository completion
+        const repoType = data.repository.status === "success" ? "success" : "error";
+        const repoMessage =
+          data.repository.status === "success"
+            ? `✓ ${data.repository.name}: ${data.repository.message}`
+            : `✗ ${data.repository.name}: ${data.repository.message}`;
+        addTerminalLine(repoMessage, repoType);
+        break;
+      case "complete":
+        const duration = cloneStartTime ? formatDuration(cloneStartTime) : "unknown";
+        addTerminalLine(
+          `🎉 Clone process completed in ${duration}! ${data.summary.success} successful, ${data.summary.errors} failed`,
+          "success"
+        );
+        completeClone(data);
+        eventSource.close();
+        break;
+      case "cancelled":
+        addTerminalLine("⚠️ Clone process was cancelled", "warning");
+        cancelledClone();
+        eventSource.close();
+        break;
+      case "cleanup_complete":
+        addTerminalLine(
+          `🧹 Cleanup completed: ${data.removed.length} repositories and folders removed from disk`,
+          "info"
+        );
+        if (data.removed && data.removed.length > 0) {
+          data.removed.forEach((repo) => {
+            addTerminalLine(`  🗑️ Deleted: ${repo.name} (${repo.path})`, "success");
+          });
+        }
+        addTerminalLine("💾 Target directory restored to original state", "success");
+
+        // Show detailed cleanup summary in the main UI
+        const currentActivity = document.getElementById("clone-current-activity");
+        if (currentActivity) {
+          currentActivity.innerHTML = `
+            <div class="cleanup-summary">
+              <strong>✅ Cleanup completed successfully</strong>
+              <div>🧹 Removed ${data.removed.length} repositories and their folders from disk:</div>
+              <ul class="cleanup-list">
+                ${data.removed.map((repo) => `<li>🗑️ ${repo.name}</li>`).join("")}
+              </ul>
+              <div>💾 Your target directory has been completely restored to its original state.</div>
+            </div>
+          `;
+        }
+        break;
+      case "error":
+        console.error("Clone process error:", data.message);
+        addTerminalLine(`❌ Clone process failed: ${data.message}`, "error");
+        const results = document.getElementById("clone-results");
+        if (results) {
+          results.innerHTML = `<div class="error">Clone process failed: ${data.message}</div>`;
+        }
+        eventSource.close();
+        break;
+    }
+  };
+
+  eventSource.onerror = function (event) {
+    console.error("Clone progress error:", event);
+    eventSource.close();
+  };
+}
+
+function updateCloneProgress(current, total, repository, message) {
+  const progressFill = document.getElementById("clone-progress-fill");
+  const progressText = document.getElementById("clone-progress-text");
+  const currentActivity = document.getElementById("clone-current-activity");
+
+  if (progressFill) {
+    const percentage = (current / total) * 100;
+    progressFill.style.width = `${percentage}%`;
+  }
+
+  if (progressText) {
+    progressText.textContent = `${current} / ${total}`;
+  }
+
+  if (currentActivity) {
+    if (repository) {
+      currentActivity.textContent = `Cloning ${repository}...`;
+    } else if (message) {
+      currentActivity.textContent = message;
+    }
+  }
+}
+
+function addActivityLogItem(repository) {
+  const activityItems = document.getElementById("clone-activity-items");
+  if (activityItems) {
+    const statusClass = repository.status === "success" ? "activity-success" : "activity-error";
+    const statusIcon = repository.status === "success" ? "✅" : "❌";
+
+    const item = document.createElement("div");
+    item.className = `activity-item ${statusClass}`;
+    item.innerHTML = `
+      <div class="activity-content">
+        <span class="activity-icon">${statusIcon}</span>
+        <span class="activity-repo">${repository.name}</span>
+        <span class="activity-message">${repository.message}</span>
+      </div>
+      <div class="activity-progress-bar">
+        <div class="activity-progress-fill ${statusClass}"></div>
+      </div>
+    `;
+
+    activityItems.appendChild(item);
+    activityItems.scrollTop = activityItems.scrollHeight;
+  }
+}
+
+function addActivityLogItemInProgress(repositoryName, message) {
+  const activityItems = document.getElementById("clone-activity-items");
+  if (activityItems) {
+    const item = document.createElement("div");
+    item.className = "activity-item activity-in-progress";
+    item.id = `activity-${repositoryName.replace(/[^a-zA-Z0-9]/g, "-")}`;
+    item.innerHTML = `
+      <div class="activity-content">
+        <span class="activity-icon">⏳</span>
+        <span class="activity-repo">${repositoryName}</span>
+        <span class="activity-message">${message}</span>
+      </div>
+      <div class="activity-progress-bar">
+        <div class="activity-progress-fill activity-in-progress"></div>
+      </div>
+    `;
+    // Insert at the top instead of bottom
+    activityItems.insertBefore(item, activityItems.firstChild);
+  }
+}
+
+function updateActivityLogItem(repositoryName, repository) {
+  const itemId = `activity-${repositoryName.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const item = document.getElementById(itemId);
+  if (item) {
+    const statusClass = repository.status === "success" ? "activity-success" : "activity-error";
+    const statusIcon = repository.status === "success" ? "✅" : "❌";
+
+    item.className = `activity-item ${statusClass}`;
+    item.innerHTML = `
+      <div class="activity-content">
+        <span class="activity-icon">${statusIcon}</span>
+        <span class="activity-repo">${repository.name}</span>
+        <span class="activity-message">${repository.message}</span>
+      </div>
+      <div class="activity-progress-bar">
+        <div class="activity-progress-fill ${statusClass}"></div>
+      </div>
+    `;
+  }
+}
+
+function completeClone(data) {
+  const results = document.getElementById("clone-results");
+  const cancelBtn = document.getElementById("cancel-clone-btn");
+
+  // Store results for potential undo
+  lastCloneResults = data.results.filter((result) => result.status === "success");
+
+  if (cancelBtn) {
+    cancelBtn.textContent = "Undo Clone";
+    cancelBtn.onclick = undoClone;
+    cancelBtn.className = "btn btn-warning";
+    cancelBtn.disabled = false;
+  }
+
+  const currentActivity = document.getElementById("clone-current-activity");
+  if (currentActivity) {
+    currentActivity.innerHTML = `
+      <div class="completion-summary">
+        <strong>${data.message}</strong>
+        <div class="summary-stats">
+          Total: ${data.summary.total} |
+          Success: <span class="success-count">${data.summary.success}</span> |
+          Errors: <span class="error-count">${data.summary.errors}</span>
+        </div>
+        <div class="completion-actions">
+          <button class="btn btn-purple" onclick="saveCompleteConfiguration()">
+            <span class="material-icons">save</span>
+            Save Configuration Files
+          </button>
+          <p class="completion-note">
+            Save both .env and .clonehome files with the settings used in this clone operation.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  currentCloneSession = null;
+}
+
+async function saveCompleteConfiguration() {
+  try {
+    // Get current configuration
+    const config = {
+      token: document.getElementById("token").value,
+      targetDir: document.getElementById("targetDir").value,
+      includeOrgs: document.getElementById("includeOrgs").checked,
+      includeForks: document.getElementById("includeForks").checked,
+    };
+
+    // Save .env file
+    await exportToEnv();
+
+    // Save .clonehome file (organization configuration)
+    await saveConfigFile();
+
+    showSuccess("✓ Configuration files saved successfully! Both .env and .clonehome files have been downloaded.");
+  } catch (error) {
+    console.error("Save configuration error:", error);
+    showError("Failed to save configuration files: " + error.message);
+  }
+}
+
+async function cancelClone() {
+  if (!currentCloneSession) return;
+
+  const cancelBtn = document.getElementById("cancel-clone-btn");
+  const currentActivity = document.getElementById("clone-current-activity");
+
+  if (cancelBtn) {
+    cancelBtn.disabled = true;
+    cancelBtn.textContent = "Cancelling...";
+  }
+
+  addTerminalLine("🛑 Cancelling clone process and cleaning up...", "warning");
+
+  if (currentActivity) {
+    currentActivity.textContent = "Cancelling clone process and removing all cloned repositories from disk...";
+  }
+
+  try {
+    const response = await fetch(`/api/clone/cancel/${currentCloneSession}`, {
+      method: "POST",
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (currentActivity) {
+        currentActivity.innerHTML = `
+          <div class="cancellation-summary">
+            <strong>✅ Clone process cancelled successfully</strong>
+            <div>🧹 All cloned repositories and their folders have been completely removed from disk.</div>
+            <div>💾 Your target directory has been restored to its original state.</div>
           </div>
         `;
-      });
-      html += "</div>";
+      }
+    } else {
+      throw new Error(data.error || "Failed to cancel");
     }
-
-    results.innerHTML = html;
   } catch (error) {
-    results.innerHTML = `<div class="error">Clone failed: ${error.message}</div>`;
+    console.error("Error cancelling clone:", error);
+    if (currentActivity) {
+      currentActivity.innerHTML = `
+        <div class="error-summary">
+          <strong>❌ Error cancelling clone</strong>
+          <div>${error.message}</div>
+        </div>
+      `;
+    }
+  }
+}
+
+function cancelledClone() {
+  const results = document.getElementById("clone-results");
+
+  // Show cancellation message briefly, then reset
+  results.innerHTML = `
+    <div class="warning">
+      <h3>Clone process cancelled</h3>
+      <p>The clone operation was cancelled and all cloned repositories have been removed.</p>
+      <p>You can start a new clone operation below.</p>
+    </div>
+  `;
+
+  // Hide the terminal
+  hideTerminal();
+
+  // Reset session
+  currentCloneSession = null;
+
+  // Reset the page after a brief delay to show the cancellation message
+  setTimeout(() => {
+    resetClonePage();
+  }, 3000);
+}
+
+function resetClonePage() {
+  const results = document.getElementById("clone-results");
+  results.innerHTML = "";
+
+  // Reset the start button
+  const startButton = document.querySelector('button[onclick="startClone()"]');
+  if (startButton) {
+    startButton.disabled = false;
+    startButton.textContent = "Start cloning";
+  }
+
+  // Clear terminal content
+  clearTerminal();
+
+  // Reset any other state variables
+  currentCloneSession = null;
+  lastCloneResults = null;
+}
+
+let lastCloneResults = null;
+
+function undoClone() {
+  if (!lastCloneResults) {
+    alert("No clone operation to undo");
+    return;
+  }
+
+  const confirmUndo = confirm(
+    `This will delete all ${lastCloneResults.length} cloned repositories from your disk. Are you sure?`
+  );
+
+  if (!confirmUndo) return;
+
+  performUndoClone();
+}
+
+async function performUndoClone() {
+  const results = document.getElementById("clone-results");
+
+  results.innerHTML = `
+    <div class="clone-progress-container">
+      <h3>🧹 Undoing clone operation...</h3>
+      <div class="current-activity" id="undo-activity">Removing all cloned repositories and folders from disk...</div>
+      <div class="activity-log" id="undo-activity-log">
+        <h4>📋 Cleanup Progress</h4>
+        <div class="activity-items" id="undo-activity-items"></div>
+      </div>
+    </div>
+  `;
+
+  try {
+    const response = await fetch("/api/clone/undo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ results: lastCloneResults }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      const undoActivity = document.getElementById("undo-activity");
+      if (undoActivity) {
+        undoActivity.innerHTML = `
+          <div class="completion-summary">
+            <strong>✅ Undo completed successfully</strong>
+            <div>🧹 All ${data.removed.length} cloned repositories and their folders have been completely removed from disk.</div>
+            <div>💾 Your target directory has been restored to its original state.</div>
+          </div>
+        `;
+      }
+
+      // Add removal log items
+      if (data.removed && data.removed.length > 0) {
+        const undoActivityItems = document.getElementById("undo-activity-items");
+        if (undoActivityItems) {
+          data.removed.forEach((item) => {
+            const activityItem = document.createElement("div");
+            activityItem.className = "activity-item activity-success";
+            activityItem.innerHTML = `
+              <span class="activity-icon">🗑️</span>
+              <span class="activity-repo">${item.name}</span>
+              <span class="activity-message">Removed from ${item.path}</span>
+            `;
+            undoActivityItems.appendChild(activityItem);
+          });
+        }
+      }
+
+      lastCloneResults = null;
+    } else {
+      throw new Error(data.error || "Undo failed");
+    }
+  } catch (error) {
+    const undoActivity = document.getElementById("undo-activity");
+    if (undoActivity) {
+      undoActivity.innerHTML = `
+        <div class="error-summary">
+          <strong>❌ Error during undo</strong>
+          <div>${error.message}</div>
+        </div>
+      `;
+    }
   }
 }
 
@@ -561,6 +1389,15 @@ async function loadOrganizationConfig() {
 }
 
 async function saveOrganizationConfig() {
+  // Get the save button for immediate feedback
+  const saveButton = document.querySelector('button[onclick="saveOrganizationConfig()"]');
+  const originalText = saveButton ? saveButton.innerHTML : null;
+
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<span class="material-icons">hourglass_empty</span> Saving...';
+  }
+
   try {
     // Clean the organization config to ensure it's valid JSON
     const cleanConfig = {};
@@ -582,12 +1419,33 @@ async function saveOrganizationConfig() {
 
     if (response.ok) {
       showSuccess("Organization saved to server!");
+
+      // Show success on button temporarily
+      if (saveButton) {
+        saveButton.innerHTML = '<span class="material-icons">check_circle</span> Saved!';
+        setTimeout(() => {
+          saveButton.innerHTML = originalText;
+          saveButton.disabled = false;
+        }, 2000);
+      }
     } else {
       showError(result.error);
+
+      // Reset button on error
+      if (saveButton) {
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+      }
     }
   } catch (error) {
     console.error("Save organization error:", error);
     showError("Failed to save organization: " + error.message);
+
+    // Reset button on error
+    if (saveButton) {
+      saveButton.innerHTML = originalText;
+      saveButton.disabled = false;
+    }
   }
 }
 
@@ -692,7 +1550,8 @@ function displayOrganizedStructure() {
                 <span class="folder-name"><span class="material-icons">folder</span>${parentName}</span>
                 <div>
                     <span class="folder-count">${totalRepos}</span>
-                    <button class="delete-folder-btn" onclick="deleteParentFolder('${parentName}')"><span class="material-icons">delete</span></button>
+                    <button class="rename-folder-btn" onclick="event.stopPropagation(); renameParentFolder('${parentName}')" title="Rename folder"><span class="material-icons">edit</span></button>
+                    <button class="delete-folder-btn" onclick="event.stopPropagation(); deleteParentFolder('${parentName}')" title="Delete folder"><span class="material-icons">delete</span></button>
                 </div>
             </div>
             <div class="folder-content" data-folder="${parentName}">
@@ -730,7 +1589,10 @@ function displayOrganizedStructure() {
                       <div class="child-folder">
                           <div class="child-folder-header">
                               <span class="folder-name"><span class="material-icons">folder_open</span>${childName}</span>
-                              <span class="folder-count">${sortedRepos.length}</span>
+                              <div>
+                                  <span class="folder-count">${sortedRepos.length}</span>
+                                  <button class="rename-folder-btn" onclick="event.stopPropagation(); renameChildFolder('${parentName}', '${childName}')" title="Rename subfolder"><span class="material-icons">edit</span></button>
+                              </div>
                           </div>
                           ${sortedRepos
                             .map(
@@ -1062,6 +1924,95 @@ function deleteFolder(folderName) {
   }
 }
 
+function renameParentFolder(oldParentName) {
+  const newParentName = prompt(`Rename folder "${oldParentName}" to:`, oldParentName);
+
+  if (!newParentName || !newParentName.trim() || newParentName.trim() === oldParentName) {
+    return; // User cancelled or entered same name
+  }
+
+  const trimmedNewName = newParentName.trim();
+
+  // Check if new parent folder name already exists
+  const existingParent = Object.keys(organizationConfig).some(
+    (folder) => folder === trimmedNewName || folder.startsWith(trimmedNewName + "/")
+  );
+
+  if (existingParent) {
+    alert(`Folder "${trimmedNewName}" already exists!`);
+    return;
+  }
+
+  // Get all folders that start with the old parent name
+  const foldersToRename = Object.keys(organizationConfig).filter(
+    (folder) => folder === oldParentName || folder.startsWith(oldParentName + "/")
+  );
+
+  // Create new folder structure with renamed parent
+  const newConfig = { ...organizationConfig };
+
+  foldersToRename.forEach((oldFolder) => {
+    const repos = organizationConfig[oldFolder];
+
+    // Create new folder name by replacing the parent part
+    let newFolder;
+    if (oldFolder === oldParentName) {
+      newFolder = trimmedNewName;
+    } else {
+      newFolder = oldFolder.replace(oldParentName + "/", trimmedNewName + "/");
+    }
+
+    // Add to new config and remove old
+    newConfig[newFolder] = repos;
+    delete newConfig[oldFolder];
+  });
+
+  // Update the organization config
+  organizationConfig = newConfig;
+
+  initializeOrganizer();
+  showSuccess(`Renamed folder "${oldParentName}" to "${trimmedNewName}"`);
+
+  // Auto-save to server
+  clearTimeout(window.saveTimeout);
+  window.saveTimeout = setTimeout(() => {
+    saveOrganizationConfig();
+  }, 500);
+}
+
+function renameChildFolder(parentName, oldChildName) {
+  const newChildName = prompt(`Rename subfolder "${oldChildName}" to:`, oldChildName);
+
+  if (!newChildName || !newChildName.trim() || newChildName.trim() === oldChildName) {
+    return; // User cancelled or entered same name
+  }
+
+  const trimmedNewName = newChildName.trim();
+  const oldFullPath = `${parentName}/${oldChildName}`;
+  const newFullPath = `${parentName}/${trimmedNewName}`;
+
+  // Check if new child folder name already exists
+  if (organizationConfig[newFullPath]) {
+    alert(`Subfolder "${trimmedNewName}" already exists in "${parentName}"!`);
+    return;
+  }
+
+  // Move repositories from old path to new path
+  if (organizationConfig[oldFullPath]) {
+    organizationConfig[newFullPath] = organizationConfig[oldFullPath];
+    delete organizationConfig[oldFullPath];
+
+    initializeOrganizer();
+    showSuccess(`Renamed subfolder "${oldChildName}" to "${trimmedNewName}"`);
+
+    // Auto-save to server
+    clearTimeout(window.saveTimeout);
+    window.saveTimeout = setTimeout(() => {
+      saveOrganizationConfig();
+    }, 500);
+  }
+}
+
 function deleteParentFolder(parentName) {
   // Find all folders that start with this parent name
   const foldersToDelete = Object.keys(organizationConfig).filter(
@@ -1196,7 +2147,17 @@ function importConfigFile(event) {
         }
 
         initializeOrganizer();
-        showSuccess(`Config imported successfully! Loaded ${Object.keys(organizationConfig).length} folders.`);
+
+        // Automatically save the imported organization to the backend
+        saveOrganizationConfig()
+          .then(() => {
+            showSuccess(
+              `Config imported and saved successfully! Loaded ${Object.keys(organizationConfig).length} folders.`
+            );
+          })
+          .catch((error) => {
+            showError(`Config imported but failed to save: ${error.message}`);
+          });
       } else {
         showError("Invalid config file format");
       }
@@ -1217,21 +2178,22 @@ function autoOrganizeByOwner() {
 
   const confirm = window.confirm(
     "This will organize repositories by owner into separate parent folders. " +
-      "Existing organization will be preserved. Continue?"
+      "⚠️ WARNING: This will completely overwrite any existing organization structure. Continue?"
   );
 
   if (!confirm) return;
 
+  // Clear existing organization first
+  organizationConfig = {};
+
   // Create parent folders based on repository owner
   let organizedCount = 0;
   repositories.forEach((repo) => {
-    if (!isRepoOrganized(repo)) {
-      const owner = repo.full_name.split("/")[0];
-      const repoFolderName = repo.full_name.split("/").pop();
-      const fullPath = `${owner}/${repoFolderName}`;
-      addRepoToFolder(fullPath, repo.full_name);
-      organizedCount++;
-    }
+    const owner = repo.full_name.split("/")[0];
+    const repoFolderName = repo.full_name.split("/").pop();
+    const fullPath = `${owner}/${repoFolderName}`;
+    addRepoToFolder(fullPath, repo.full_name);
+    organizedCount++;
   });
 
   initializeOrganizer();
@@ -1246,21 +2208,20 @@ function autoOrganizeByLanguage() {
 
   const confirm = window.confirm(
     "This will organize repositories by programming language into separate folders. " +
-      "Existing organization will be preserved. Continue?"
+      "⚠️ WARNING: This will completely overwrite any existing organization structure. Continue?"
   );
 
   if (!confirm) return;
 
+  // Clear existing organization first
+  organizationConfig = {};
+
   // Create folders based on repository language
   let organizedCount = 0;
   repositories.forEach((repo) => {
-    if (!isRepoOrganized(repo)) {
-      const language = repo.language || "Other";
-      const repoFolderName = repo.full_name.split("/").pop();
-      const fullPath = `languages/${language.toLowerCase()}/${repoFolderName}`;
-      addRepoToFolder(fullPath, repo.full_name);
-      organizedCount++;
-    }
+    const language = repo.language || "Other";
+    addRepoToFolder(language, repo.full_name);
+    organizedCount++;
   });
 
   initializeOrganizer();
@@ -1275,22 +2236,21 @@ function autoOrganizeByYear() {
 
   const confirm = window.confirm(
     "This will organize repositories by the year they were last updated. " +
-      "Existing organization will be preserved. Continue?"
+      "⚠️ WARNING: This will completely overwrite any existing organization structure. Continue?"
   );
 
   if (!confirm) return;
 
+  // Clear existing organization first
+  organizationConfig = {};
+
   // Create folders based on repository last updated year
   let organizedCount = 0;
   repositories.forEach((repo) => {
-    if (!isRepoOrganized(repo)) {
-      const updatedDate = new Date(repo.updated_at);
-      const year = updatedDate.getFullYear();
-      const repoFolderName = repo.full_name.split("/").pop();
-      const fullPath = `by-year/${year}/${repoFolderName}`;
-      addRepoToFolder(fullPath, repo.full_name);
-      organizedCount++;
-    }
+    const updatedDate = new Date(repo.updated_at);
+    const year = updatedDate.getFullYear().toString();
+    addRepoToFolder(year, repo.full_name);
+    organizedCount++;
   });
 
   initializeOrganizer();
@@ -1416,6 +2376,9 @@ function logMemoryUsage() {
 document.addEventListener("DOMContentLoaded", () => {
   loadConfig();
   setupEnvStatusMonitoring();
+
+  // Initialize the correct tab based on URL hash
+  initializeTabFromHash();
 
   // Log memory usage periodically in development
   if (window.location.hostname === "localhost") {

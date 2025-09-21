@@ -107,10 +107,26 @@ export class CloneHome {
     await fs.ensureDir(path.dirname(repoPath));
 
     try {
-      // Clone the repository
-      await this.git.clone(repo.clone_url, repoPath, ["--quiet"]);
+      // Clone the repository with timeout protection
+      const clonePromise = this.git.clone(repo.clone_url, repoPath, ["--quiet"]);
+
+      // Add a timeout to prevent hanging clones
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Clone operation timed out after 5 minutes")), 5 * 60 * 1000);
+      });
+
+      await Promise.race([clonePromise, timeoutPromise]);
       return { status: "cloned", path: repoPath };
     } catch (error) {
+      // Clean up partial clone if it exists
+      try {
+        if (await fs.pathExists(repoPath)) {
+          await fs.remove(repoPath);
+        }
+      } catch (cleanupError) {
+        console.warn(`Failed to cleanup partial clone at ${repoPath}:`, cleanupError.message);
+      }
+
       return { status: "error", path: repoPath, error: error.message };
     }
   }
@@ -118,7 +134,7 @@ export class CloneHome {
   async getRepositoryPath(repo, basePath) {
     // Check for directory tree configuration
     const treeConfigPath = path.join(process.cwd(), "directory-tree.json");
-    const orgConfigPath = path.join(process.cwd(), "repository-organization.json");
+    const orgConfigPath = path.join(basePath, "repository-organization.json");
 
     let customPath = null;
 
@@ -132,7 +148,7 @@ export class CloneHome {
       }
     }
 
-    // Try repository organization configuration
+    // Try repository organization configuration (saved by web interface)
     if (!customPath && (await fs.pathExists(orgConfigPath))) {
       try {
         const orgConfig = await fs.readJson(orgConfigPath);

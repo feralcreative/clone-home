@@ -282,66 +282,429 @@ export class WebUI {
             })),
           });
         } else {
-          // Implement actual cloning
-          const results = [];
-          let successCount = 0;
-          let errorCount = 0;
+          // Start cloning process and return session ID
+          const sessionId = Date.now().toString();
 
-          for (const repo of repositories) {
-            try {
-              const result = await cloneHome.cloneRepository(repo, settings.targetDir);
-
-              let message;
-              let status;
-
-              switch (result.status) {
-                case "cloned":
-                  message = `Successfully cloned to ${result.path}`;
-                  status = "success";
-                  successCount++;
-                  break;
-                case "exists":
-                  message = `Already exists at ${result.path}`;
-                  status = "success";
-                  successCount++;
-                  break;
-                case "error":
-                  message = result.error || "Clone failed";
-                  status = "error";
-                  errorCount++;
-                  break;
-                default:
-                  message = `Unknown status: ${result.status}`;
-                  status = "error";
-                  errorCount++;
-              }
-
-              results.push({
-                name: repo.full_name,
-                status: status,
-                path: result.path,
-                message: message,
-              });
-            } catch (error) {
-              results.push({
-                name: repo.full_name,
-                status: "error",
-                message: error.message,
-              });
-              errorCount++;
-            }
-          }
+          // Start the clone process asynchronously with error handling
+          this.startCloneProcess(sessionId, repositories, settings, cloneHome).catch((error) => {
+            console.error(`Clone process failed for session ${sessionId}:`, error);
+            // Send error to any connected SSE clients
+            this.sendProgress(sessionId, {
+              type: "error",
+              message: `Clone process failed: ${error.message}`,
+              error: error.message,
+            });
+          });
 
           res.json({
-            message: `Cloning completed: ${successCount} successful, ${errorCount} failed`,
-            summary: { total: repositories.length, success: successCount, errors: errorCount },
-            results,
+            message: `Starting clone process for ${repositories.length} repositories`,
+            sessionId: sessionId,
+            total: repositories.length,
           });
         }
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
     });
+
+    // Clone progress endpoint (Server-Sent Events)
+    this.app.get("/api/clone/progress/:sessionId", (req, res) => {
+      const sessionId = req.params.sessionId;
+      console.log(`SSE connection established for session: ${sessionId}`);
+
+      // Set up SSE headers
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Cache-Control",
+      });
+
+      // Store the response object for this session
+      if (!this.cloneSessions) {
+        this.cloneSessions = new Map();
+      }
+
+      this.cloneSessions.set(sessionId, res);
+      console.log(`Stored SSE connection for session ${sessionId}. Total sessions: ${this.cloneSessions.size}`);
+
+      // Send any buffered progress events
+      if (this.progressBuffer && this.progressBuffer.has(sessionId)) {
+        const bufferedEvents = this.progressBuffer.get(sessionId);
+        console.log(`Sending ${bufferedEvents.length} buffered events for session ${sessionId}`);
+
+        bufferedEvents.forEach((data, index) => {
+          try {
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+            console.log(`Sent buffered event ${index + 1}/${bufferedEvents.length} for session ${sessionId}`);
+          } catch (error) {
+            console.error("Error sending buffered progress:", error);
+          }
+        });
+
+        // Clear the buffer
+        this.progressBuffer.delete(sessionId);
+      }
+
+      // Handle client disconnect
+      req.on("close", () => {
+        console.log(`SSE connection closed for session: ${sessionId}`);
+        this.cloneSessions.delete(sessionId);
+        // Clean up any remaining buffered events
+        if (this.progressBuffer && this.progressBuffer.has(sessionId)) {
+          this.progressBuffer.delete(sessionId);
+        }
+      });
+    });
+
+    // Cancel clone endpoint
+    this.app.post("/api/clone/cancel/:sessionId", async (req, res) => {
+      const sessionId = req.params.sessionId;
+
+      try {
+        // Mark process as cancelled
+        if (this.cloneProcesses && this.cloneProcesses.has(sessionId)) {
+          const processInfo = this.cloneProcesses.get(sessionId);
+          processInfo.cancelled = true;
+
+          // Clean up any repositories that were successfully cloned
+          const removed = await this.cleanupClonedRepositories(processInfo.results);
+
+          // Also try to clean up the target directory if it was created but is empty
+          await this.forceCleanupTargetDirectory();
+
+          this.cloneProcesses.delete(sessionId);
+
+          // Send detailed cleanup information
+          this.sendProgress(sessionId, {
+            type: "cleanup_complete",
+            message: `Cleanup completed: ${removed.length} repositories removed`,
+            removed: removed,
+          });
+        }
+
+        if (this.cloneSessions && this.cloneSessions.has(sessionId)) {
+          const sseRes = this.cloneSessions.get(sessionId);
+          sseRes.write(`data: ${JSON.stringify({ type: "cancelled" })}\n\n`);
+          sseRes.end();
+          this.cloneSessions.delete(sessionId);
+        }
+
+        res.json({ message: "Clone process cancelled and cleaned up" });
+      } catch (error) {
+        console.error("Error cancelling clone:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Undo clone endpoint
+    this.app.post("/api/clone/undo", async (req, res) => {
+      try {
+        const { results } = req.body;
+
+        if (!results || !Array.isArray(results)) {
+          return res.status(400).json({ error: "No clone results provided" });
+        }
+
+        const removed = await this.cleanupClonedRepositories(results);
+
+        res.json({
+          message: `Successfully removed ${removed.length} repositories`,
+          removed: removed,
+        });
+      } catch (error) {
+        console.error("Error during undo:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+  }
+
+  async startCloneProcess(sessionId, repositories, settings, cloneHome) {
+    console.log(`Starting clone process for session ${sessionId} with ${repositories.length} repositories`);
+
+    if (!this.cloneProcesses) {
+      this.cloneProcesses = new Map();
+    }
+
+    const processInfo = {
+      cancelled: false,
+      total: repositories.length,
+      completed: 0,
+      results: [],
+    };
+
+    this.cloneProcesses.set(sessionId, processInfo);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    console.log(`Starting to clone ${repositories.length} repositories...`);
+
+    for (let i = 0; i < repositories.length; i++) {
+      const repo = repositories[i];
+
+      // Check if process was cancelled
+      if (processInfo.cancelled) {
+        this.sendProgress(sessionId, {
+          type: "cancelled",
+          message: "Clone process was cancelled",
+        });
+        return;
+      }
+
+      // Send progress update
+      console.log(`Cloning repository ${i + 1}/${repositories.length}: ${repo.full_name}`);
+      this.sendProgress(sessionId, {
+        type: "progress",
+        current: i + 1,
+        total: repositories.length,
+        repository: repo.full_name,
+        message: `Cloning ${repo.full_name}...`,
+      });
+
+      try {
+        console.log(`Calling cloneRepository for ${repo.full_name}`);
+        const result = await cloneHome.cloneRepository(repo, settings.targetDir);
+        console.log(`Clone result for ${repo.full_name}:`, result);
+
+        // If there's an error, log it but continue with the process
+        if (result.status === "error") {
+          console.error(`Error cloning ${repo.full_name}: ${result.error}`);
+        }
+
+        let message;
+        let status;
+
+        switch (result.status) {
+          case "cloned":
+            message = `Successfully cloned to ${result.path}`;
+            status = "success";
+            successCount++;
+            break;
+          case "exists":
+            message = `Already exists at ${result.path}`;
+            status = "success";
+            successCount++;
+            break;
+          case "error":
+            message = result.error || "Clone failed";
+            status = "error";
+            errorCount++;
+            break;
+          default:
+            message = `Unknown status: ${result.status}`;
+            status = "error";
+            errorCount++;
+        }
+
+        const repoResult = {
+          name: repo.full_name,
+          status: status,
+          path: result.path,
+          message: message,
+        };
+
+        processInfo.results.push(repoResult);
+        processInfo.completed++;
+
+        // Send individual repository result
+        this.sendProgress(sessionId, {
+          type: "repository_complete",
+          repository: repoResult,
+          progress: {
+            current: i + 1,
+            total: repositories.length,
+            success: successCount,
+            errors: errorCount,
+          },
+        });
+      } catch (error) {
+        console.error(`Unexpected error cloning ${repo.full_name}:`, error);
+
+        const repoResult = {
+          name: repo.full_name,
+          status: "error",
+          message: error.message,
+        };
+
+        processInfo.results.push(repoResult);
+        processInfo.completed++;
+        errorCount++;
+
+        this.sendProgress(sessionId, {
+          type: "repository_complete",
+          repository: repoResult,
+          progress: {
+            current: i + 1,
+            total: repositories.length,
+            success: successCount,
+            errors: errorCount,
+          },
+        });
+      }
+    }
+
+    // Send completion message
+    this.sendProgress(sessionId, {
+      type: "complete",
+      message: `Cloning completed: ${successCount} successful, ${errorCount} failed`,
+      summary: {
+        total: repositories.length,
+        success: successCount,
+        errors: errorCount,
+      },
+      results: processInfo.results,
+    });
+
+    // Clean up
+    this.cloneProcesses.delete(sessionId);
+    if (this.cloneSessions && this.cloneSessions.has(sessionId)) {
+      this.cloneSessions.get(sessionId).end();
+      this.cloneSessions.delete(sessionId);
+    }
+  }
+
+  sendProgress(sessionId, data) {
+    console.log(`Sending progress for session ${sessionId}:`, data);
+
+    // Initialize progress buffer if it doesn't exist
+    if (!this.progressBuffer) {
+      this.progressBuffer = new Map();
+    }
+
+    if (this.cloneSessions && this.cloneSessions.has(sessionId)) {
+      const res = this.cloneSessions.get(sessionId);
+      console.log(`Found SSE connection for session ${sessionId}`);
+      try {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+        console.log(`Successfully sent SSE data for session ${sessionId}`);
+      } catch (error) {
+        console.error("Error sending progress:", error);
+        this.cloneSessions.delete(sessionId);
+      }
+    } else {
+      console.log(`No SSE connection found for session ${sessionId}. Buffering progress event.`);
+
+      // Buffer the progress event for when the SSE connection is established
+      if (!this.progressBuffer.has(sessionId)) {
+        this.progressBuffer.set(sessionId, []);
+      }
+      this.progressBuffer.get(sessionId).push(data);
+    }
+  }
+
+  async cleanupClonedRepositories(results) {
+    const fs = await import("fs-extra");
+    const path = await import("path");
+    const removed = [];
+
+    if (!results || results.length === 0) {
+      return removed;
+    }
+
+    console.log(`🧹 Cleaning up ${results.length} cloned repositories and removing them from disk...`);
+
+    // Get the target directory from config
+    const config = new (await import("./config.js")).Config();
+    const settings = await config.load();
+    const targetDir = settings?.targetDir;
+
+    for (const result of results) {
+      if (result.path) {
+        try {
+          if (await fs.pathExists(result.path)) {
+            await fs.remove(result.path);
+            console.log(`🗑️ Deleted repository and folder: ${result.path}`);
+            removed.push({
+              name: result.name,
+              path: result.path,
+            });
+          }
+        } catch (error) {
+          console.error(`Failed to remove ${result.path}:`, error.message);
+        }
+      }
+    }
+
+    // After removing individual repositories, always check if we should remove the entire target directory
+    if (targetDir) {
+      try {
+        if (await fs.pathExists(targetDir)) {
+          // Check if the target directory is empty or only contains empty subdirectories
+          const isEmpty = await this.isDirectoryEmptyRecursive(targetDir);
+          if (isEmpty) {
+            await fs.remove(targetDir);
+            console.log(`🗑️ Removed empty target directory: ${targetDir}`);
+          } else {
+            console.log(`📁 Target directory ${targetDir} is not empty, keeping it`);
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to remove target directory ${targetDir}:`, error.message);
+      }
+    }
+
+    console.log(`✅ Cleanup completed: ${removed.length} repositories and their folders completely removed from disk`);
+    return removed;
+  }
+
+  async isDirectoryEmptyRecursive(dirPath) {
+    const fs = await import("fs-extra");
+
+    try {
+      const items = await fs.readdir(dirPath);
+
+      if (items.length === 0) {
+        return true;
+      }
+
+      // Check if all items are empty directories
+      for (const item of items) {
+        const itemPath = require("path").join(dirPath, item);
+        const stat = await fs.stat(itemPath);
+
+        if (stat.isFile()) {
+          return false; // Found a file, directory is not empty
+        }
+
+        if (stat.isDirectory()) {
+          const isEmpty = await this.isDirectoryEmptyRecursive(itemPath);
+          if (!isEmpty) {
+            return false; // Found a non-empty subdirectory
+          }
+        }
+      }
+
+      return true; // All subdirectories are empty
+    } catch (error) {
+      console.error(`Error checking if directory is empty: ${error.message}`);
+      return false;
+    }
+  }
+
+  async forceCleanupTargetDirectory() {
+    const fs = await import("fs-extra");
+
+    try {
+      // Get the target directory from config
+      const config = new (await import("./config.js")).Config();
+      const settings = await config.load();
+      const targetDir = settings?.targetDir;
+
+      if (targetDir && (await fs.pathExists(targetDir))) {
+        // Check if the target directory is empty or only contains empty subdirectories
+        const isEmpty = await this.isDirectoryEmptyRecursive(targetDir);
+        if (isEmpty) {
+          await fs.remove(targetDir);
+          console.log(`🗑️ Force removed empty target directory: ${targetDir}`);
+        } else {
+          console.log(`📁 Target directory ${targetDir} contains files, keeping it`);
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to force cleanup target directory:`, error.message);
+    }
   }
 
   sendEnvStatus(res) {

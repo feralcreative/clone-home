@@ -1,4 +1,5 @@
 // Component styles
+@use "sass:color";
 @use "variables" as *;
 
 // Buttons with proper contrast using color-specific text variables
@@ -22,12 +23,12 @@
   }
 
   &-secondary {
-    background: $accent-secondary;
-    color: $accent-secondary-text; // Use color-specific text variable
+    background: $accent-02;
+    color: $accent-02-text; // Use color-specific text variable
 
     &:hover {
-      background: $accent-secondary-hover;
-      color: $accent-secondary-hover-text; // Use hover text variable
+      background: $accent-02-hover;
+      color: $accent-02-hover-text; // Use hover text variable
     }
   }
 
@@ -52,12 +53,34 @@
   }
 
   &-primary {
-    background: $accent-primary;
-    color: $accent-primary-text; // Use color-specific text variable
+    background: $accent-01;
+    color: $accent-01-text; // Use color-specific text variable
 
     &:hover {
-      background: $accent-primary-hover;
-      color: $accent-primary-hover-text; // Use hover text variable
+      background: $accent-01-hover;
+      color: $accent-01-hover-text; // Use hover text variable
+    }
+  }
+
+  &-navigation {
+    background: $accent-04;
+    color: $accent-04-text;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+
+    &:hover {
+      background: $accent-04-hover;
+      color: $accent-04-hover-text;
+    }
+
+    .material-icons {
+      font-size: 1.2rem;
+      line-height: 1;
+      vertical-align: middle;
     }
   }
 }
@@ -170,8 +193,8 @@
 
 // Folder count badge
 .folder-count {
-  background: $accent-primary;
-  color: $accent-primary-text; // Use color-specific text variable
+  background: $accent-01;
+  color: $accent-01-text; // Use color-specific text variable
   padding: 1px 4px;
   border-radius: 8px;
   font-size: 0.7rem;
@@ -213,5 +236,476 @@
   &:hover {
     background: $accent-danger-hover;
     color: $accent-danger-hover-text;
+  }
+}
+
+// Tab navigation
+.tab-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $border-color;
+
+  .btn {
+    min-width: 120px;
+    background-color: transparent;
+    border: 1px solid $accent-05;
+    color: $accent-05;
+    font-weight: 200;
+    font-size: 1.1em;
+    padding: 0.25em 0.5em;
+    &:hover {
+      background-color: $accent-05-hover;
+      color: $accent-05-hover-text;
+      border-color: white;
+    }
+  }
+
+  // When there's only one button, align it to the right
+  &:has(.btn:only-child) {
+    justify-content: flex-end;
+  }
+}
+
+// Clone completion
+.completion-summary {
+  text-align: center;
+  padding: 1rem;
+
+  .summary-stats {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: $text-secondary;
+
+    .success-count {
+      color: $accent-success;
+      font-weight: 600;
+    }
+
+    .error-count {
+      color: $accent-danger;
+      font-weight: 600;
+    }
+  }
+
+  .completion-actions {
+    margin-top: 1.5rem;
+
+    .btn {
+      margin: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .completion-note {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: $text-secondary;
+      font-style: italic;
+    }
+  }
+}
+
+// Configuration footnotes
+.config-footnote {
+  margin: 0.75rem 10vw 0.5rem 10vw;
+  font-size: 0.8rem;
+  color: $text-secondary;
+  font-style: normal;
+  text-align: left;
+}
+
+// Cleanup summary
+.cleanup-summary {
+  background: color.adjust($accent-success, $lightness: 45%);
+  border: 1px solid $accent-success;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+
+  .cleanup-list {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+
+    li {
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Info notice
+.info-notice {
+  background: color.adjust($accent-03, $lightness: 45%);
+  border: 1px solid $accent-03;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+// Embedded Clone Progress Terminal
+.clone-progress-terminal {
+  margin-top: 2rem;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  color: #fff;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+// Progress Overview
+.progress-overview {
+  padding: 1rem;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+}
+
+.overall-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-label {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 20px;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $accent-success, color.adjust($accent-success, $lightness: 10%));
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.progress-text {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: right;
+}
+
+// Repository Progress List
+.repository-progress-list {
+  max-height: 300px;
+  overflow-y: auto;
+  background: #252525;
+  border-bottom: 1px solid #333;
+}
+
+.repo-progress-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.success {
+    background: color.adjust($accent-success, $lightness: -40%, $alpha: -0.8);
+  }
+
+  &.error {
+    background: color.adjust($accent-danger, $lightness: -40%, $alpha: -0.8);
+  }
+
+  &.in-progress {
+    background: color.adjust($accent-04, $lightness: -40%, $alpha: -0.8);
+  }
+}
+
+.repo-name {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 200px;
+}
+
+.repo-status {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+
+  &.success {
+    background: $accent-success;
+    color: $accent-success-text;
+  }
+
+  &.error {
+    background: $accent-danger;
+    color: $accent-danger-text;
+  }
+
+  &.in-progress {
+    background: $accent-04;
+    color: $accent-04-text;
+  }
+
+  &.pending {
+    background: #666;
+    color: #fff;
+  }
+}
+
+.repo-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+
+  .repo-progress-fill {
+    height: 100%;
+    background: $accent-04;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+
+    &.success {
+      background: $accent-success;
+    }
+
+    &.error {
+      background: $accent-danger;
+    }
+  }
+}
+
+.terminal-header {
+  background: #2d2d2d;
+  padding: 8px 12px;
+  border-bottom: 1px solid #333;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.terminal-title {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.terminal-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.terminal-control {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #555;
+  color: #fff;
+
+  &:hover {
+    background: #666;
+  }
+
+  &.clear {
+    background: $accent-warning;
+    color: #000;
+
+    &:hover {
+      background: #ffaa00;
+    }
+  }
+
+  &.close {
+    background: #ff5f57;
+    color: #000;
+
+    &:hover {
+      background: #ff3b30;
+    }
+  }
+}
+
+.terminal-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-output {
+  flex: 1;
+  padding: 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #1e1e1e;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+
+    &:hover {
+      background: #777;
+    }
+  }
+}
+
+.terminal-line {
+  margin-bottom: 2px;
+
+  &.success {
+    color: #4ade80;
+  }
+
+  &.error {
+    color: #f87171;
+  }
+
+  &.warning {
+    color: #fbbf24;
+  }
+
+  &.info {
+    color: #60a5fa;
+  }
+
+  &.progress {
+    color: #a78bfa;
+  }
+}
+
+// Activity log styles
+.activity-log {
+  margin-top: 1rem;
+
+  h4 {
+    margin-bottom: 0.5rem;
+    color: $text-primary;
+  }
+}
+
+.activity-items {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  background: $bg-secondary;
+}
+
+.activity-item {
+  border-bottom: 1px solid $border-color;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.activity-success {
+    background: color.adjust($accent-success, $lightness: 45%);
+  }
+
+  &.activity-error {
+    background: color.adjust($accent-danger, $lightness: 45%);
+  }
+
+  &.activity-in-progress {
+    background: color.adjust($accent-warning, $lightness: 45%);
+  }
+}
+
+.activity-content {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.activity-icon {
+  font-size: 1rem;
+}
+
+.activity-repo {
+  font-weight: 500;
+  color: $text-primary;
+  min-width: 200px;
+}
+
+.activity-message {
+  color: $text-secondary;
+  font-size: 0.9rem;
+}
+
+.activity-progress-bar {
+  height: 3px;
+  background: #333;
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-progress-fill {
+  height: 100%;
+  width: 100%;
+  transition: all 0.3s ease;
+
+  &.activity-success {
+    background: $accent-success;
+  }
+
+  &.activity-error {
+    background: $accent-danger;
+  }
+
+  &.activity-in-progress {
+    background: $accent-warning;
+    animation: progress-pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes progress-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
