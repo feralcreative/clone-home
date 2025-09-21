@@ -1,3 +1,0 @@
-[submodule "libs/browser-sync"]
-	path = libs/browser-sync
-	url = https://github.com/feralcreative/browser-sync.git

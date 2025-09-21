@@ -13,8 +13,7 @@
     "test": "node --test test/*.test.js",
     "build-css": "sass web/assets/styles/styles.scss web/assets/styles/styles.css",
     "watch-css": "sass --watch web/assets/styles/styles.scss:web/assets/styles/styles.css",
-    "build": "npm run build-css",
-    "browsersync": "cd libs/browser-sync && npm run start-clone-home"
+    "build": "npm run build-css"
   },
   "keywords": [
     "github",
