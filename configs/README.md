@@ -134,7 +134,7 @@ When you click "By Year", repositories are grouped by their creation year:
 └── legacy-system
 📁 2022/
 └── old-project
-📁 2024/
+📁 2025/
 ├── current-work
 └── new-experiment
 ```
