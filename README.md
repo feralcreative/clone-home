@@ -7,7 +7,7 @@ A powerful GitHub repository management tool with both web interface and CLI. Cl
 - **🌐 Web Interface**: Drag-and-drop organization with visual folder management
 - **🖥️ Command Line**: Powerful CLI with filtering, dry-run, and automation
 - **🤖 Auto-Organization**: One-click organization by owner, language, or year
-- **💾 Configuration Management**: Save and share repository organization setups
+- **💾 Dual Configuration Export**: Save both `.env` files and `.clonehome` organization files from the web interface
 - **🔍 Smart Filtering**: Advanced search and filtering capabilities
 - **⚡ One-Click Cloning**: Clone all repositories with a single command
 - **🛡️ Safe Operations**: Preview mode and safety checks prevent accidents
@@ -66,7 +66,14 @@ Configuration is stored in `~/.clone-home/config.json`
 
 Start the web interface: `npm start web` → Open `http://localhost:3847`
 
-**Features**: Setup → Browse Repositories → Organize with Drag & Drop → Clone
+**Features**: Setup → Browse Repositories → Organize with Drag & Drop → **Export Both .env & .clonehome Files** → Clone
+
+**Key Advantage**: The web interface can export **both** configuration file types:
+
+- **`.env` files** with your GitHub token and settings
+- **`.clonehome` files** with your repository organization structure
+
+Perfect for setting up new development machines with complete configuration!
 
 ## �️ Command Line
 
@@ -83,11 +90,16 @@ npm start status  # Check local repository status
 
 ## Configuration
 
-Configuration is stored in `~/.clone-home/config.json`. The web interface also creates shareable `.clonehome` files for repository organization.
+Configuration is stored in `~/.clone-home/config.json`. **The web interface provides dual export capabilities:**
+
+- **`.env` files**: Export your GitHub token and settings for easy project setup
+- **`.clonehome` files**: Save and share your repository organization structure
+
+This allows you to quickly set up new development environments with both authentication and folder organization in place.
 
 ## Security
 
-- GitHub tokens are stored locally in your home directory
+- GitHub tokens are stored locally in the project's `.env` file
 - Tokens are never logged or transmitted anywhere except to GitHub's API
 - Use tokens with minimal required permissions
 

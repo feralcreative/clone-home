@@ -68,11 +68,37 @@ The web interface will be available at `http://localhost:3847`
 1. **Setup**: Configure your GitHub token and preferences in the Setup tab
 2. **Browse**: View all your repositories in the Repositories tab
 3. **Organize**: Use drag & drop in the Organize tab to create your ideal folder structure
-4. **Save**: Export your organization configuration as a `.clonehome` file
+4. **Export**: Save **both** `.env` files (with credentials) and `.clonehome` files (with organization)
 5. **Clone**: Use the Clone tab to preview and execute the cloning process
 6. **Repeat**: Load saved configurations on new machines for consistent setups
 
 ## Configuration Files
+
+**The web interface provides dual export capabilities** - you can save both types of configuration files:
+
+### 📄 .env Files (Setup Tab)
+
+Export your GitHub token and settings as a `.env` file for easy project setup:
+
+- Contains your GitHub Personal Access Token
+- Includes target directory and repository preferences
+- Perfect for sharing authentication settings across projects
+- Can be placed in any Clone Home project directory
+
+### 📁 .clonehome Files (Organize Tab)
+
+Export your repository organization structure as a `.clonehome` file:
+
+- Contains your custom folder organization
+- Includes repository-to-folder mappings
+- Shareable with team members for consistent setups
+- Can be loaded on any machine to recreate your organization
+
+### Combined Workflow
+
+1. **Setup Tab**: Configure and export `.env` file with your credentials
+2. **Organize Tab**: Create folder structure and export `.clonehome` file
+3. **New Machine**: Import both files for complete environment setup
 
 The web interface creates `.clonehome` configuration files that contain your repository organization:
 
