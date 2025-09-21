@@ -220,12 +220,17 @@
                     <button class="btn btn-secondary" onclick="previewClone()">Preview clone</button>
                     <button class="btn" onclick="startClone()">Start cloning</button>
                 </div>
+                <div class="margin-vertical">
+                    <button class="btn btn-danger" onclick="performUninstall()">
+                        <span class="material-icons">delete_forever</span>Complete Uninstall
+                    </button>
+                </div>
                 <div id="clone-results"></div>
 
                 <!-- Embedded Clone Progress Terminal -->
                 <div id="clone-progress-terminal" class="clone-progress-terminal hidden">
                     <div class="terminal-header">
-                        <div class="terminal-title">📊 Clone Progress</div>
+                        <div class="terminal-title"><span class="material-icons">analytics</span> Clone Progress</div>
                         <div class="terminal-controls">
                             <button class="terminal-control clear" onclick="clearTerminal()">Clear</button>
                         </div>

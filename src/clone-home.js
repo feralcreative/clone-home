@@ -107,13 +107,29 @@ export class CloneHome {
     await fs.ensureDir(path.dirname(repoPath));
 
     try {
-      // Clone the repository with timeout protection
-      const clonePromise = this.git.clone(repo.clone_url, repoPath, ["--quiet"]);
+      // Clone the repository with progress reporting
+      const clonePromise = this.cloneWithProgress(repo, repoPath, options);
 
-      // Add a timeout to prevent hanging clones
+      // Add a timeout to prevent hanging clones (10 minutes for larger repos)
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Clone operation timed out after 5 minutes")), 5 * 60 * 1000);
+        setTimeout(() => reject(new Error("Clone operation timed out after 10 minutes")), 10 * 60 * 1000);
       });
+
+      // Add warning at 5 minutes
+      const warningPromise = new Promise((resolve) => {
+        setTimeout(() => {
+          if (options.onProgress) {
+            options.onProgress({
+              type: "warning",
+              message: `Large repository detected - still downloading ${repo.full_name}...`,
+            });
+          }
+          resolve();
+        }, 5 * 60 * 1000);
+      });
+
+      // Start warning timer but don't wait for it
+      warningPromise.catch(() => {}); // Ignore if clone completes first
 
       await Promise.race([clonePromise, timeoutPromise]);
       return { status: "cloned", path: repoPath };
@@ -129,6 +145,92 @@ export class CloneHome {
 
       return { status: "error", path: repoPath, error: error.message };
     }
+  }
+
+  async cloneWithProgress(repo, repoPath, options = {}) {
+    return new Promise((resolve, reject) => {
+      // Use spawn to get real-time progress output
+      const { spawn } = require("child_process");
+
+      // Git clone with progress reporting
+      const gitProcess = spawn("git", ["clone", "--progress", repo.clone_url, repoPath], {
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+
+      let progressData = "";
+      let errorData = "";
+
+      // Git outputs progress to stderr (this is normal for git)
+      gitProcess.stderr.on("data", (data) => {
+        const output = data.toString();
+        progressData += output;
+
+        // Parse git progress output
+        if (options.onProgress) {
+          // Look for progress indicators in git output
+          const lines = output.split("\n");
+          for (const line of lines) {
+            if (line.includes("Receiving objects:") || line.includes("Resolving deltas:")) {
+              // Extract percentage if available
+              const percentMatch = line.match(/(\d+)%/);
+              if (percentMatch) {
+                options.onProgress({
+                  type: "clone_progress",
+                  message: line.trim(),
+                  percentage: parseInt(percentMatch[1]),
+                });
+              } else {
+                options.onProgress({
+                  type: "clone_progress",
+                  message: line.trim(),
+                });
+              }
+            } else if (line.includes("Cloning into") || line.includes("remote:")) {
+              options.onProgress({
+                type: "clone_status",
+                message: line.trim(),
+              });
+            }
+          }
+        }
+      });
+
+      gitProcess.stdout.on("data", (data) => {
+        // Git clone typically doesn't output to stdout, but capture it just in case
+        if (options.onProgress) {
+          options.onProgress({
+            type: "clone_output",
+            message: data.toString().trim(),
+          });
+        }
+      });
+
+      gitProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Git clone failed with exit code ${code}: ${errorData || progressData}`));
+        }
+      });
+
+      gitProcess.on("error", (error) => {
+        reject(new Error(`Failed to start git clone: ${error.message}`));
+      });
+
+      // Capture any error output
+      gitProcess.stderr.on("data", (data) => {
+        const output = data.toString();
+        // Only treat as error if it doesn't contain progress indicators
+        if (
+          !output.includes("Receiving objects:") &&
+          !output.includes("Resolving deltas:") &&
+          !output.includes("Cloning into") &&
+          !output.includes("remote:")
+        ) {
+          errorData += output;
+        }
+      });
+    });
   }
 
   async getRepositoryPath(repo, basePath) {

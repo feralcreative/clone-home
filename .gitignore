@@ -21,7 +21,7 @@ wp-content/cache/
 wp-content/languages/
 wp-content/plugins/
 # Node.js
-node_modules/
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

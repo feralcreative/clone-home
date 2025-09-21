@@ -369,6 +369,91 @@ INCLUDE_FORKS=${includeForks}
   }
 }
 
+// Perform complete uninstall
+async function performUninstall() {
+  // Get current target directory to show user exactly what will be deleted
+  const targetDir = document.getElementById("targetDir").value.trim();
+
+  if (!targetDir) {
+    showError("No target directory configured. Please configure a target directory first.");
+    return;
+  }
+
+  // Show confirmation dialog with specific directory
+  const confirmed = confirm(
+    "⚠️ COMPLETE UNINSTALL WARNING ⚠️\n\n" +
+      "This will permanently delete:\n" +
+      "• All cloned repositories and their files\n" +
+      "• All configuration files\n" +
+      "• All directory structures created by Clone Home\n" +
+      `• The target directory: ${targetDir}\n` +
+      "  (and all its contents if not empty)\n\n" +
+      "This action CANNOT be undone!\n\n" +
+      "Are you absolutely sure you want to proceed?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // Second confirmation for safety
+  const doubleConfirmed = confirm(
+    "🚨 FINAL CONFIRMATION 🚨\n\n" +
+      "You are about to permanently delete all Clone Home data.\n" +
+      `This includes the entire directory: ${targetDir}\n` +
+      "and all your cloned repositories inside it!\n\n" +
+      "Type 'DELETE' in the next prompt to confirm."
+  );
+
+  if (!doubleConfirmed) {
+    return;
+  }
+
+  const finalConfirmation = prompt("Type 'DELETE' (all caps) to confirm the complete uninstall:");
+
+  if (finalConfirmation !== "DELETE") {
+    showError("Uninstall cancelled. You must type 'DELETE' exactly to confirm.");
+    return;
+  }
+
+  try {
+    showSuccess("Starting complete uninstall...");
+
+    const response = await fetch("/api/uninstall", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    console.log("Uninstall completed:", result);
+
+    // Show detailed results
+    let message = "✅ Complete uninstall completed successfully!\n\n";
+    message += `Processed ${result.cleanupLog.length} items:\n`;
+
+    result.cleanupLog.forEach((item) => {
+      message += `• ${item.action}: ${item.path}\n`;
+    });
+
+    alert(message);
+
+    showSuccess("Complete uninstall completed! All Clone Home data has been removed.");
+
+    // Reset the form
+    document.getElementById("setup-form").reset();
+  } catch (error) {
+    console.error("Uninstall error:", error);
+    showError("Failed to perform complete uninstall: " + error.message);
+  }
+}
+
 // Clear organization structure with confirmation
 function clearOrganizationStructure() {
   const hasOrganizedRepos = Object.keys(organizationConfig).length > 0;
@@ -937,6 +1022,10 @@ function listenForCloneProgress(sessionId, total) {
         // Add in-progress item to activity log
         addActivityLogItemInProgress(data.repository, "Cloning...");
         break;
+      case "clone_detail":
+        // Handle detailed clone progress updates
+        handleCloneDetailProgress(data);
+        break;
       case "repository_complete":
         // Update the in-progress item to completed status
         updateActivityLogItem(data.repository.name, data.repository);
@@ -969,7 +1058,10 @@ function listenForCloneProgress(sessionId, total) {
         eventSource.close();
         break;
       case "cancelled":
-        addTerminalLine("⚠️ Clone process was cancelled", "warning");
+        addTerminalLine(
+          "Clone process was cancelled - use Complete Uninstall to remove any partial downloads",
+          "warning"
+        );
         cancelledClone();
         eventSource.close();
         break;
@@ -1041,11 +1133,74 @@ function updateCloneProgress(current, total, repository, message) {
   }
 }
 
+function handleCloneDetailProgress(data) {
+  const { repository, progress, current, total } = data;
+
+  // Update the current activity with detailed progress
+  const currentActivity = document.getElementById("clone-current-activity");
+  if (currentActivity) {
+    let displayMessage = `[${current}/${total}] ${repository}`;
+
+    switch (progress.type) {
+      case "clone_progress":
+        // Show git clone progress (e.g., "Receiving objects: 45% (1234/2700)")
+        displayMessage += ` - ${progress.message}`;
+        if (progress.percentage) {
+          // Update the activity log item with percentage if available
+          updateActivityLogItemProgress(repository, `${progress.percentage}% - ${progress.message}`);
+        } else {
+          updateActivityLogItemProgress(repository, progress.message);
+        }
+        break;
+      case "clone_status":
+        // Show git status messages (e.g., "Cloning into 'repo-name'...")
+        displayMessage += ` - ${progress.message}`;
+        updateActivityLogItemProgress(repository, progress.message);
+        break;
+      case "warning":
+        // Show warnings for large repositories
+        displayMessage += ` - ${progress.message}`;
+        addTerminalLine(`⚠️ ${progress.message}`, "warning");
+        updateActivityLogItemProgress(repository, progress.message);
+        break;
+      case "clone_output":
+        // Show any additional git output
+        if (progress.message && progress.message.trim()) {
+          addTerminalLine(`${repository}: ${progress.message}`, "info");
+        }
+        break;
+    }
+
+    currentActivity.textContent = displayMessage;
+  }
+
+  // Add detailed progress to terminal
+  if (progress.type === "clone_progress" && progress.message) {
+    addTerminalLine(`  ${progress.message}`, "progress detail");
+  }
+}
+
+function updateActivityLogItemProgress(repositoryName, progressMessage) {
+  const itemId = `activity-${repositoryName.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const item = document.getElementById(itemId);
+  if (item) {
+    const messageSpan = item.querySelector(".activity-message");
+    if (messageSpan) {
+      messageSpan.textContent = progressMessage;
+      // Add progress-detail class for enhanced styling
+      messageSpan.classList.add("progress-detail");
+    }
+  }
+}
+
 function addActivityLogItem(repository) {
   const activityItems = document.getElementById("clone-activity-items");
   if (activityItems) {
     const statusClass = repository.status === "success" ? "activity-success" : "activity-error";
-    const statusIcon = repository.status === "success" ? "✅" : "❌";
+    const statusIcon =
+      repository.status === "success"
+        ? '<span class="material-icons">check_circle</span>'
+        : '<span class="material-icons">error</span>';
 
     const item = document.createElement("div");
     item.className = `activity-item ${statusClass}`;
@@ -1073,7 +1228,7 @@ function addActivityLogItemInProgress(repositoryName, message) {
     item.id = `activity-${repositoryName.replace(/[^a-zA-Z0-9]/g, "-")}`;
     item.innerHTML = `
       <div class="activity-content">
-        <span class="activity-icon">⏳</span>
+        <span class="activity-icon"><span class="material-icons">hourglass_empty</span></span>
         <span class="activity-repo">${repositoryName}</span>
         <span class="activity-message">${message}</span>
       </div>
@@ -1091,7 +1246,10 @@ function updateActivityLogItem(repositoryName, repository) {
   const item = document.getElementById(itemId);
   if (item) {
     const statusClass = repository.status === "success" ? "activity-success" : "activity-error";
-    const statusIcon = repository.status === "success" ? "✅" : "❌";
+    const statusIcon =
+      repository.status === "success"
+        ? '<span class="material-icons">check_circle</span>'
+        : '<span class="material-icons">error</span>';
 
     item.className = `activity-item ${statusClass}`;
     item.innerHTML = `
@@ -1198,9 +1356,14 @@ async function cancelClone() {
       if (currentActivity) {
         currentActivity.innerHTML = `
           <div class="cancellation-summary">
-            <strong>✅ Clone process cancelled successfully</strong>
-            <div>🧹 All cloned repositories and their folders have been completely removed from disk.</div>
-            <div>💾 Your target directory has been restored to its original state.</div>
+            <strong><span class="material-icons">check_circle</span> Clone process cancelled successfully</strong>
+            <div><span class="material-icons">info</span> Some repositories may have been partially downloaded during the cancelled operation.</div>
+            <div><span class="material-icons">delete_forever</span> To completely remove any downloaded files, use the <strong>Complete Uninstall</strong> button below.</div>
+            <div class="uninstall-reminder">
+              <button class="btn btn-danger" onclick="performUninstall()">
+                <span class="material-icons">delete_forever</span>Complete Uninstall
+              </button>
+            </div>
           </div>
         `;
       }
@@ -1226,9 +1389,9 @@ function cancelledClone() {
   // Show cancellation message briefly, then reset
   results.innerHTML = `
     <div class="warning">
-      <h3>Clone process cancelled</h3>
-      <p>The clone operation was cancelled and all cloned repositories have been removed.</p>
-      <p>You can start a new clone operation below.</p>
+      <h3><span class="material-icons">warning</span> Clone process cancelled</h3>
+      <p>The clone operation was cancelled. Some repositories may have been partially downloaded.</p>
+      <p>Use the <strong>Complete Uninstall</strong> button to remove any partial downloads, or start a new clone operation below.</p>
     </div>
   `;
 
@@ -1323,7 +1486,7 @@ async function performUndoClone() {
             const activityItem = document.createElement("div");
             activityItem.className = "activity-item activity-success";
             activityItem.innerHTML = `
-              <span class="activity-icon">🗑️</span>
+              <span class="activity-icon"><span class="material-icons">delete</span></span>
               <span class="activity-repo">${item.name}</span>
               <span class="activity-message">Removed from ${item.path}</span>
             `;

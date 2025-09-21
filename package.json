@@ -26,7 +26,17 @@
     "local",
     "cli",
     "web-interface",
-    "drag-drop"
+    "drag-drop",
+    "developer-tools",
+    "git",
+    "workspace",
+    "automation",
+    "devops",
+    "repository-management",
+    "github-api",
+    "development-environment",
+    "project-organization",
+    "bulk-clone"
   ],
   "author": "Ziad",
   "homepage": "https://github.com/feralcreative/clone-home#readme",

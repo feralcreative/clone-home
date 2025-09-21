@@ -6,6 +6,7 @@ import { exec } from "child_process";
 import chokidar from "chokidar";
 import { CloneHome } from "./clone-home.js";
 import { Config } from "./config.js";
+import { CleanupManager } from "./cleanup.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -276,9 +277,13 @@ export class WebUI {
           res.json({
             message: `Would clone ${repositories.length} repositories to ${settings.targetDir}`,
             repositories: repositories.map((repo) => ({
-              name: repo.full_name,
+              name: repo.name,
+              full_name: repo.full_name,
               private: repo.private,
               language: repo.language,
+              owner: {
+                login: repo.owner.login,
+              },
             })),
           });
         } else {
@@ -358,6 +363,30 @@ export class WebUI {
       });
     });
 
+    // Uninstall endpoint - complete cleanup
+    this.app.post("/api/uninstall", async (req, res) => {
+      try {
+        const cleanupManager = new CleanupManager();
+        const config = new Config();
+        const settings = await config.load();
+
+        const cleanupLog = await cleanupManager.performFullCleanup({
+          targetDir: settings?.targetDir,
+          clonedRepositories: [], // No specific repositories, will clean up everything
+          removeConfig: true, // Remove config files on uninstall
+          verbose: true,
+        });
+
+        res.json({
+          message: "Complete uninstall completed successfully",
+          cleanupLog: cleanupLog,
+        });
+      } catch (error) {
+        console.error("Error during uninstall:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // Cancel clone endpoint
     this.app.post("/api/clone/cancel/:sessionId", async (req, res) => {
       const sessionId = req.params.sessionId;
@@ -368,11 +397,19 @@ export class WebUI {
           const processInfo = this.cloneProcesses.get(sessionId);
           processInfo.cancelled = true;
 
-          // Clean up any repositories that were successfully cloned
-          const removed = await this.cleanupClonedRepositories(processInfo.results);
+          // Use comprehensive cleanup manager
+          const cleanupManager = new CleanupManager();
+          const config = new Config();
+          const settings = await config.load();
 
-          // Also try to clean up the target directory if it was created but is empty
-          await this.forceCleanupTargetDirectory();
+          const cleanupLog = await cleanupManager.performFullCleanup({
+            targetDir: settings?.targetDir,
+            clonedRepositories: processInfo.results || [],
+            removeConfig: false, // Don't remove config files on cancel
+            verbose: true,
+          });
+
+          const removed = cleanupLog.filter((item) => item.action.includes("Removed"));
 
           this.cloneProcesses.delete(sessionId);
 
@@ -465,7 +502,22 @@ export class WebUI {
 
       try {
         console.log(`Calling cloneRepository for ${repo.full_name}`);
-        const result = await cloneHome.cloneRepository(repo, settings.targetDir);
+
+        // Add progress callback for detailed clone feedback
+        const cloneOptions = {
+          onProgress: (progressData) => {
+            // Send detailed progress updates to the client
+            this.sendProgress(sessionId, {
+              type: "clone_detail",
+              repository: repo.full_name,
+              progress: progressData,
+              current: i + 1,
+              total: repositories.length,
+            });
+          },
+        };
+
+        const result = await cloneHome.cloneRepository(repo, settings.targetDir, cloneOptions);
         console.log(`Clone result for ${repo.full_name}:`, result);
 
         // If there's an error, log it but continue with the process

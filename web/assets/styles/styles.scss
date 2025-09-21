@@ -57,7 +57,7 @@ a {
   transition: color 0.2s ease;
 
   &:hover {
-    color: $accent-01-hover-text;
+    color: $btn-text-light;
     text-decoration: underline;
   }
 
@@ -1141,6 +1141,11 @@ a {
   &.activity-error {
     background: rgba($accent-danger, 0.1);
     border-left: 3px solid $accent-danger;
+  }
+
+  &.activity-in-progress {
+    background: rgba($accent-warning, 0.1);
+    border-left: 3px solid $accent-warning;
   }
 }
 

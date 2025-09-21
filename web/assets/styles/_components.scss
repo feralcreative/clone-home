@@ -611,7 +611,25 @@
 
   &.progress {
     color: #a78bfa;
+
+    // Indent progress details for better readability
+    &.detail {
+      margin-left: 20px;
+      font-family: "Courier New", monospace;
+      font-size: 0.9em;
+      color: #c4b5fd;
+    }
   }
+}
+
+// Uninstall reminder styling
+.uninstall-reminder {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba($accent-danger, 0.1);
+  border: 1px solid $accent-danger;
+  border-radius: 8px;
+  text-align: center;
 }
 
 // Activity log styles
@@ -630,26 +648,6 @@
   border: 1px solid $border-color;
   border-radius: 4px;
   background: $bg-secondary;
-}
-
-.activity-item {
-  border-bottom: 1px solid $border-color;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &.activity-success {
-    background: color.adjust($accent-success, $lightness: 45%);
-  }
-
-  &.activity-error {
-    background: color.adjust($accent-danger, $lightness: 45%);
-  }
-
-  &.activity-in-progress {
-    background: color.adjust($accent-warning, $lightness: 45%);
-  }
 }
 
 .activity-content {
@@ -672,6 +670,13 @@
 .activity-message {
   color: $text-secondary;
   font-size: 0.9rem;
+
+  // Enhanced styling for progress messages
+  &.progress-detail {
+    font-family: "Courier New", monospace;
+    font-size: 0.85rem;
+    color: $accent-warning;
+  }
 }
 
 .activity-progress-bar {
