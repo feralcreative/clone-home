@@ -132,6 +132,8 @@ MIT License - see LICENSE file for details.
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
+3. Put your thang down, flip it and reverse it
 4. Add tests if applicable
 5. Submit a pull request
+6. ???
+7. PROFITS
