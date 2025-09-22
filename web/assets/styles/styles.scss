@@ -1156,6 +1156,14 @@ a {
     }
   }
 
+  &.parent-secondary {
+    color: $accent-04;
+    border-left: 3px solid $accent-04;
+    font-weight: 500;
+    margin-top: 2px;
+    opacity: 0.95;
+  }
+
   &.child {
     color: $accent-03;
     border-left: 3px solid $accent-03;

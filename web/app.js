@@ -687,6 +687,9 @@ async function previewClone() {
   results.innerHTML = '<div class="loading">Loading preview...</div>';
 
   try {
+    // Ensure organization config is loaded before preview
+    await loadOrganizationConfig();
+
     const response = await fetch("/api/clone", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -717,7 +720,7 @@ async function previewClone() {
 }
 
 function generateCloneHierarchyPreview(repositories) {
-  // Generate clean folder hierarchy showing root folder, then organization structure
+  // Generate simple, reliable folder hierarchy: root folder -> organization folders -> repos
   let html = '<div class="clone-hierarchy-succinct">';
 
   // Get the root folder from configuration (target directory)
@@ -727,8 +730,17 @@ function generateCloneHierarchyPreview(repositories) {
   // Show root folder first
   html += `<div class="clone-folder-path root">${rootFolderName}/</div>`;
 
-  if (Object.keys(organizationConfig).length === 0) {
-    // No organization - show default owner/repo structure
+  // Create a map of repo full names to repo names for lookup
+  const repoMap = {};
+  repositories.forEach((repo) => {
+    repoMap[repo.full_name] = repo.name;
+  });
+
+  // Check if we have organization config and it's not empty
+  const hasOrganization = organizationConfig && Object.keys(organizationConfig).length > 0;
+
+  if (!hasOrganization) {
+    // No organization - show default owner/repo structure (single level)
     const ownerGroups = {};
     repositories.forEach((repo) => {
       const owner = repo.owner.login;
@@ -742,77 +754,69 @@ function generateCloneHierarchyPreview(repositories) {
     Object.keys(ownerGroups)
       .sort()
       .forEach((owner) => {
-        html += `<div class="clone-folder-path parent" style="margin-left: 16px;">&nbsp;&nbsp;${owner}/</div>`;
+        html += `<div class="clone-folder-path parent" style="margin-left: 16px;">${owner}/</div>`;
         ownerGroups[owner].sort().forEach((repoName) => {
-          html += `<div class="clone-folder-path child" style="margin-left: 32px;">&nbsp;&nbsp;&nbsp;&nbsp;${repoName}</div>`;
+          html += `<div class="clone-folder-path parent-secondary" style="margin-left: 32px;">${repoName}/</div>`;
         });
       });
   } else {
-    // Use organization config - show clean folder structure
-    const repoMap = {};
-    repositories.forEach((repo) => {
-      repoMap[repo.full_name] = repo.name;
-    });
-
-    // Build a clean folder structure
-    const cleanStructure = {};
-    Object.entries(organizationConfig).forEach(([folderPath, repoNames]) => {
-      if (folderPath.includes("_placeholder")) return;
-
-      const validRepos = repoNames.filter((repoName) => repoMap[repoName]);
-      if (validRepos.length > 0) {
-        cleanStructure[folderPath] = validRepos.map((repoName) => repoMap[repoName]);
-      }
-    });
-
-    // Build a hierarchical structure to show all folder levels
+    // Use organization config - build proper hierarchy matching the .clonehome structure
     const hierarchy = {};
 
-    Object.keys(cleanStructure).forEach((folderPath) => {
-      const parts = folderPath.split("/");
-      let current = hierarchy;
+    // Build the hierarchy from the organization config
+    Object.entries(organizationConfig)
+      .filter(([folderPath]) => !folderPath.includes("_placeholder"))
+      .forEach(([folderPath, repoNames]) => {
+        // Get valid repos for this folder
+        const validRepos = repoNames.filter((repoName) => repoMap[repoName]).map((repoName) => repoMap[repoName]);
 
-      // Build the nested structure
-      parts.forEach((part, index) => {
-        if (!current[part]) {
-          current[part] = { folders: {}, repos: [] };
+        if (validRepos.length > 0) {
+          const parts = folderPath.split("/");
+
+          if (parts.length === 1) {
+            // Top-level category (e.g., "libs")
+            if (!hierarchy[parts[0]]) {
+              hierarchy[parts[0]] = { subfolders: {}, repos: [] };
+            }
+            hierarchy[parts[0]].repos.push(...validRepos);
+          } else if (parts.length === 2) {
+            // Category with subcategory (e.g., "cb/cb-ops")
+            const [category, subcategory] = parts;
+            if (!hierarchy[category]) {
+              hierarchy[category] = { subfolders: {}, repos: [] };
+            }
+            if (!hierarchy[category].subfolders[subcategory]) {
+              hierarchy[category].subfolders[subcategory] = [];
+            }
+            hierarchy[category].subfolders[subcategory].push(...validRepos);
+          }
         }
-        if (index === parts.length - 1) {
-          // This is the final folder, add the repos
-          current[part].repos = cleanStructure[folderPath];
-        }
-        current = current[part].folders;
       });
-    });
 
-    // Render the hierarchical structure
-    function renderLevel(level, indent = 16) {
-      Object.keys(level)
-        .sort()
-        .forEach((folderName) => {
-          const folder = level[folderName];
-          const indentStyle = `margin-left: ${indent}px;`;
+    // Render the hierarchy
+    Object.keys(hierarchy)
+      .sort()
+      .forEach((category) => {
+        const categoryData = hierarchy[category];
 
-          // Show the folder
-          html += `<div class="clone-folder-path parent" style="${indentStyle}">&nbsp;&nbsp;${folderName}/</div>`;
+        // Show category folder (e.g., "cb/", "feral/", "libs/")
+        html += `<div class="clone-folder-path parent" style="margin-left: 16px;">${category}/</div>`;
 
-          // Show repositories in this folder
-          if (folder.repos && folder.repos.length > 0) {
-            folder.repos.sort().forEach((repoName) => {
-              html += `<div class="clone-folder-path child" style="margin-left: ${
-                indent + 16
-              }px;">&nbsp;&nbsp;&nbsp;&nbsp;${repoName}</div>`;
-            });
-          }
+        // Show direct repos in category (for top-level categories like "libs")
+        if (categoryData.repos.length > 0) {
+          categoryData.repos.sort().forEach((repoName) => {
+            html += `<div class="clone-folder-path parent-secondary" style="margin-left: 32px;">${repoName}/</div>`;
+          });
+        }
 
-          // Recursively render subfolders
-          if (Object.keys(folder.folders).length > 0) {
-            renderLevel(folder.folders, indent + 16);
-          }
-        });
-    }
-
-    renderLevel(hierarchy);
+        // Show subcategories (which are the repo folders)
+        Object.keys(categoryData.subfolders)
+          .sort()
+          .forEach((subcategory) => {
+            // Show subcategory folder (e.g., "cb-ops/", "clone-home/") - this IS the repo folder
+            html += `<div class="clone-folder-path parent-secondary" style="margin-left: 32px;">${subcategory}/</div>`;
+          });
+      });
   }
 
   html += "</div>";
