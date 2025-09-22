@@ -53,6 +53,7 @@ The web interface will be available at `http://localhost:3847`
   - **By Language**: Groups repositories by primary programming language (e.g., `javascript/`, `python/`)
   - **By Year**: Groups repositories by creation year (e.g., `2024/`, `2023/`)
 - **Nested Folders**: Create complex structures like `work/client-projects` or `personal/side-projects`
+- **Repository Statistics**: Collapsible statistics section showing detailed repository metrics (collapsed by default)
 - **Configuration Export**: Save your organization as a `.clonehome` file for reuse
 
 ### ⚡ Clone Tab

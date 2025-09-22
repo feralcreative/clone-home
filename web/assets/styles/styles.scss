@@ -29,6 +29,14 @@ h6 {
   font-weight: 200;
   margin-bottom: 0.5em;
 }
+h2 {
+  font-size: 2rem;
+}
+
+h3,
+.auto-org-title {
+  font-size: 1.2rem !important;
+}
 
 .code {
   font-family: "Courier New", Courier, monospace;
@@ -116,6 +124,10 @@ a {
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
   width: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   &.active {
     color: $accent-01;
@@ -126,6 +138,37 @@ a {
   &:hover {
     color: $text-primary;
     font-weight: 500;
+  }
+
+  //@ Tab stacking for narrow screens
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 8px;
+    font-size: 1.2rem;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+
+    .material-icons {
+      font-size: 1.5rem;
+    }
+  }
+
+  //@ Very narrow tab stacking
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 4px;
+    font-size: 1rem;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px;
+
+    .material-icons {
+      font-size: 1.3rem;
+    }
   }
 }
 
@@ -144,6 +187,61 @@ a {
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 20px;
+}
+
+// Collapsible sections
+.collapsible-section {
+  margin: 20px 0;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  background: $bg-secondary;
+}
+
+.collapsible-header {
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: $text-primary;
+  font-family: "Aleo", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba($accent-01, 0.05);
+  }
+
+  .material-icons {
+    transition: transform 0.2s;
+    color: $accent-01;
+  }
+
+  &.expanded .material-icons {
+    transform: rotate(180deg);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  padding: 0 20px;
+
+  &.expanded {
+    max-height: 1000px;
+    padding: 0 20px 20px 20px;
+  }
 }
 
 // Forms
@@ -762,6 +860,10 @@ a {
     font-size: 0.65rem;
   }
 }
+#languageFilter,
+#ownerFilter {
+  font: 100 1.2rem/1em Open Sans, sans-serif;
+}
 
 .child-repo {
   margin-left: 4px;
@@ -796,6 +898,103 @@ a {
       width: 100%;
       align-items: flex-start;
     }
+  }
+}
+
+// Clone row specific styling
+.clone-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 20px 0;
+  gap: 20px;
+
+  .btns-clone {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .flex-column-end {
+    align-items: flex-end;
+    align-self: flex-start; // Ensure it aligns to the top
+  }
+
+  // Override margin-vertical in clone row context
+  .margin-vertical {
+    margin: 0 !important; // Remove vertical margin to align to top
+  }
+
+  //@ Mobile clone row stacking
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+
+    .flex-column-end {
+      align-items: flex-start;
+      margin-top: 16px;
+    }
+  }
+}
+
+// Navigation buttons - styled as subtle navigation links
+.tab-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0;
+  padding: 0 8px;
+}
+
+.btn-navigation {
+  background: rgba($bg-secondary, 0.5) !important;
+  // border: 1px solid $border-color !important;
+  padding: 12px 20px !important;
+  color: $accent-05 !important;
+  font-family: "Aleo", Georgia, serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 300 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 1.5em;
+  min-width: 25vw !important;
+
+  &:hover {
+    background: rgba($bg-secondary, 0.9) !important;
+    border-color: $accent-01 !important;
+    color: $accent-01 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+
+    .material-icons {
+      color: $accent-01 !important;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .material-icons {
+    font-size: 1.2rem;
+    color: $accent-05;
+    transition: color 0.2s ease;
+  }
+
+  span:not(.material-icons) {
+    font-weight: 400;
+  }
+
+  &:focus {
+    outline: 2px solid rgba($accent-01, 0.3);
+    outline-offset: 2px;
   }
 }
 
@@ -935,6 +1134,15 @@ a {
 
   &:hover {
     background: $bg-tertiary;
+  }
+
+  &.root {
+    color: $accent-02;
+    border-left: 4px solid $accent-02;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    background: rgba($accent-02, 0.1);
   }
 
   &.parent {

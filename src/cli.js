@@ -170,4 +170,57 @@ program
     }
   });
 
+program
+  .command("dev")
+  .description("Launch development mode with web interface and BrowserSync")
+  .option("-p, --port <port>", "Port to run web server on", "3847")
+  .action(async (options) => {
+    try {
+      const { spawn } = await import("child_process");
+
+      console.log(chalk.blue("🚀 Starting development mode..."));
+      console.log(chalk.dim("   This will start both the web server and BrowserSync"));
+
+      // Start the web server without opening browser
+      const webUI = new WebUI({ openBrowser: false });
+      webUI.port = parseInt(options.port);
+      await webUI.start();
+
+      console.log(chalk.green("✅ Web server started (no browser)"));
+      console.log(chalk.blue("🔄 Starting BrowserSync..."));
+
+      // Start BrowserSync
+      const browserSyncProcess = spawn("npm", ["run", "browsersync"], {
+        stdio: "inherit",
+        shell: true,
+      });
+
+      // Handle cleanup
+      const cleanup = () => {
+        console.log(chalk.yellow("\n👋 Shutting down development mode..."));
+        webUI.stop();
+        browserSyncProcess.kill();
+        process.exit(0);
+      };
+
+      process.on("SIGINT", cleanup);
+      process.on("SIGTERM", cleanup);
+
+      browserSyncProcess.on("error", (error) => {
+        console.error(chalk.red("❌ BrowserSync error:"), error.message);
+        cleanup();
+      });
+
+      browserSyncProcess.on("exit", (code) => {
+        if (code !== 0) {
+          console.log(chalk.yellow("⚠️  BrowserSync exited, but web server is still running"));
+          console.log(chalk.blue(`   Web interface: http://localhost:${webUI.port}`));
+        }
+      });
+    } catch (error) {
+      console.error(chalk.red("❌ Error:"), error.message);
+      process.exit(1);
+    }
+  });
+
 program.parse();

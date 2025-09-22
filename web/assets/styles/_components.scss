@@ -3,6 +3,33 @@
 @use "variables" as *;
 
 // Buttons with proper contrast using color-specific text variables
+.btns-clone {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+#uninstall-btn {
+  background-color: #1a1a1a; // Dark background
+  border: 2px solid #dc3545; // Red border
+  color: #dc3545; // Red text
+
+  .material-icons {
+    color: #dc3545; // Red icons
+    padding: 0;
+    margin: 0;
+  }
+
+  &:hover {
+    background-color: #dc3545; // Red background on hover
+    border: 2px solid white; // White border on hover
+    color: white; // White text on hover
+
+    .material-icons {
+      color: white; // White icons on hover
+    }
+  }
+}
 .btn {
   padding: 0.5em 1em;
   background: $accent-success;
@@ -68,9 +95,9 @@
     font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0.5rem;
-    text-align: center;
+    min-width: 20vw !important;
 
     &:hover {
       background: $accent-04-hover;
@@ -263,9 +290,9 @@
     }
   }
 
-  // When there's only one button, align it to the right
+  // When there's only one button, align it to the left (back buttons should always be on the left)
   &:has(.btn:only-child) {
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 }
 
@@ -311,7 +338,7 @@
 
 // Configuration footnotes
 .config-footnote {
-  margin: 0.75rem 10vw 0.5rem 10vw;
+  margin: 1rem 0.5rem;
   font-size: 0.8rem;
   color: $text-secondary;
   font-style: normal;

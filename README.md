@@ -76,6 +76,7 @@ Configuration is stored in `~/.clone-home/config.json`
 
 - **[Web Interface Guide](docs/web-interface.md)** - Complete guide to using the drag-and-drop web interface
 - **[Command Line Guide](docs/cli-guide.md)** - Detailed CLI usage, commands, and configs
+- **[BrowserSync Setup](docs/browser-sync-setup.md)** - Live-reload development setup for web interface
 - **[Performance Analysis](docs/performance-analysis.md)** - Memory usage and optimization details
 - **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
 - **[Development Guide](docs/development.md)** - Development setup and contribution guidelines
@@ -93,6 +94,25 @@ Start the web interface: `npm start web` → Open `http://localhost:3847`
 - **`.clonehome` files** with your repository organization structure
 
 Perfect for setting up new development machines with complete configuration!
+
+### 🔄 Live Development with BrowserSync
+
+For web interface development with live-reload:
+
+**Option 1: Development Mode (Recommended)**
+
+```bash
+npm run dev                     # Starts both web server and BrowserSync
+```
+
+**Option 2: Manual Setup**
+
+```bash
+npm start web                   # Start Clone Home (port 3847)
+npm run browsersync             # Start BrowserSync (port 3001)
+```
+
+The development mode automatically starts both the web server (without opening a browser) and BrowserSync (which opens the browser at `http://localhost:3001`). BrowserSync will automatically reload when you edit files in the `web/` directory. See **[BrowserSync Setup Guide](docs/browser-sync-setup.md)** for detailed instructions.
 
 ## �️ Command Line
 

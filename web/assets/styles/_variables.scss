@@ -53,7 +53,7 @@ $accent-success-hover-text: $accent-success-text;
 $accent-danger: #ff0000;
 $accent-danger-text: $btn-text-light;
 $accent-danger-hover: color.adjust($accent-danger, $lightness: -20%);
-$accent-danger-hover-text: $accent-danger-text;
+$accent-danger-hover-text: $btn-text-light;
 
 // Warning Yellow - warning states, private repository badges, caution indicators
 $accent-warning: #ffcc00;

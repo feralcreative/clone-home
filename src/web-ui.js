@@ -12,11 +12,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class WebUI {
-  constructor() {
+  constructor(options = {}) {
     this.app = express();
     this.port = 3847;
     this.envWatcher = null;
     this.connectedClients = new Set();
+    this.openBrowser = options.openBrowser !== false; // Default to true, can be disabled
     this.setupMiddleware();
     this.setupRoutes();
   }
@@ -821,15 +822,19 @@ export class WebUI {
         const url = `http://localhost:${this.port}`;
         console.log(`🌐 Clone Home Web UI running at ${url}`);
 
-        // Automatically open browser
-        this.openBrowser(url);
+        // Conditionally open browser
+        if (this.openBrowser) {
+          this.openBrowserWindow(url);
+        } else {
+          console.log(`💡 Browser opening disabled - server ready for BrowserSync`);
+        }
 
         resolve();
       });
     });
   }
 
-  openBrowser(url) {
+  openBrowserWindow(url) {
     const platform = process.platform;
 
     let command;

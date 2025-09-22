@@ -29,10 +29,18 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('setup', false)">Configure</button>
-            <button class="tab" onclick="showTab('repositories', false)">View</button>
-            <button class="tab" onclick="showTab('organize', false)">Organize</button>
-            <button class="tab" onclick="showTab('clone', false)">Clone</button>
+            <button class="tab active" onclick="showTab('setup', false)">
+                <span class="material-icons">settings</span>Configure
+            </button>
+            <button class="tab" onclick="showTab('repositories', false)">
+                <span class="material-icons">list</span>View
+            </button>
+            <button class="tab" onclick="showTab('organize', false)">
+                <span class="material-icons">folder_open</span>Organize
+            </button>
+            <button class="tab" onclick="showTab('clone', false)">
+                <span class="material-icons">download</span>Clone
+            </button>
         </div>
 
         <!-- Setup Tab -->
@@ -40,7 +48,11 @@
 
             <!-- Navigation buttons -->
             <div class="tab-navigation">
-                <button class="btn btn-navigation" onclick="nextTab()" id="setup-next">View <span class="material-icons">chevron_right</span></button>
+                <button class="btn btn-navigation" onclick="nextTab()" id="setup-next">
+                    <span class="material-icons">list</span>
+                    <span>View</span>
+                    <span class="material-icons">chevron_right</span>
+                </button>
             </div>
 
             <div class="card">
@@ -85,10 +97,12 @@
                         </label>
                     </div>
                     <div class="flex-row">
-                        <button class="btn" onclick="saveConfig()">Save configuration</button>
-                        <button class="btn btn-purple" onclick="exportToEnv()">Export .env file</button>
+                        <button class="btn" onclick="saveConfig()"><span class="material-icons">save</span>Save configuration</button>
+                        <button class="btn btn-purple" onclick="exportToEnv()"><span class="material-icons">file_download</span>Export .env file</button>
                     </div>
-                    <p class="config-footnote">* Export buttons create downloadable files. You'll have a final chance to export both .env and .clonehome files after cloning completes.</p>
+                    <p class="config-footnote">Note: Use the <strong>Save</strong> button to apply changes to this run. Export buttons create downloadable files. You'll have a another chance to export both
+                        <span class="code">.env</span> and <span class="code">.clonehome</span> files after cloning completes.
+                    </p>
                 </div>
             </div>
         </div>
@@ -98,8 +112,16 @@
 
             <!-- Navigation buttons -->
             <div class="tab-navigation">
-                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> Configure</button>
-                <button class="btn btn-navigation" onclick="nextTab()">Organize <span class="material-icons">chevron_right</span></button>
+                <button class="btn btn-navigation" onclick="previousTab()">
+                    <span class="material-icons">chevron_left</span>
+                    <span>Configure</span>
+                    <span class="material-icons">settings</span>
+                </button>
+                <button class="btn btn-navigation" onclick="nextTab()">
+                    <span class="material-icons">folder_open</span>
+                    <span>Organize</span>
+                    <span class="material-icons">chevron_right</span>
+                </button>
             </div>
 
             <div class="card">
@@ -124,8 +146,16 @@
 
             <!-- Navigation buttons -->
             <div class="tab-navigation">
-                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> View</button>
-                <button class="btn btn-navigation" onclick="nextTab()">Clone <span class="material-icons">chevron_right</span></button>
+                <button class="btn btn-navigation" onclick="previousTab()">
+                    <span class="material-icons">chevron_left</span>
+                    <span>View</span>
+                    <span class="material-icons">list</span>
+                </button>
+                <button class="btn btn-navigation" onclick="nextTab()">
+                    <span class="material-icons">download</span>
+                    <span>Clone</span>
+                    <span class="material-icons">chevron_right</span>
+                </button>
             </div>
 
             <div class="card">
@@ -155,6 +185,19 @@
                         <span class="code">.env</span> and <span class="code">.clonehome</span> files after cloning completes.
                     </p>
                 </div>
+
+                <!-- Collapsible Statistics Section -->
+                <div class="collapsible-section">
+                    <button class="collapsible-header" onclick="toggleCollapsible('stats-section')">
+                        <span class="material-icons">expand_more</span>
+                        <h3>Repository Statistics</h3>
+                    </button>
+                    <div class="collapsible-content" id="stats-section">
+                        <div id="detailed-stats">
+                            <div class="loading">Load repositories first</div>
+                        </div>
+                    </div>
+                </div>
                 <input type="file" id="configFileInput" accept=".clonehome,.json" class="hidden" onchange="importConfigFile(event)">
 
                 <div class="grid-two-columns">
@@ -164,9 +207,9 @@
                         <h3><span class="material-icons">list_alt</span>Unorganized repositories</h3>
                         <div class="multi-select-controls" id="multi-select-controls">
                             <span class="selected-count" id="selected-count">0 selected</span>
-                            <button class="btn btn-secondary" onclick="selectAll()">Select all</button>
-                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
-                            <button class="btn btn-secondary" onclick="moveSelectedToFolder()">Move to folder</button>
+                            <button class="btn btn-secondary" onclick="selectAll()"><span class="material-icons">select_all</span>Select all</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()"><span class="material-icons">clear</span>Clear</button>
+                            <button class="btn btn-secondary" onclick="moveSelectedToFolder()"><span class="material-icons">drive_file_move</span>Move to folder</button>
                         </div>
                         <div id="unorganized-repos" class="repo-drop-zone">
                             <div class="loading">Load repositories first</div>
@@ -192,12 +235,7 @@
 
                 <!-- Stats will be populated here -->
             </div>
-            <div class="card">
-                <h2>Repository statistics</h2>
-                <div id="detailed-stats">
-                    <div class="loading">Load repositories first</div>
-                </div>
-            </div>
+
         </div>
 
         <!-- Clone Tab -->
@@ -205,7 +243,11 @@
 
             <!-- Navigation buttons -->
             <div class="tab-navigation">
-                <button class="btn btn-navigation" onclick="previousTab()"><span class="material-icons">chevron_left</span> Organize</button>
+                <button class="btn btn-navigation" onclick="previousTab()">
+                    <span class="material-icons">chevron_left</span>
+                    <span>Organize</span>
+                    <span class="material-icons">folder_open</span>
+                </button>
             </div>
 
             <div class="card">
@@ -216,15 +258,32 @@
                     <strong>Note:</strong> No custom directory structure set up. Repositories will be cloned using the default owner/repo structure (e.g.,&nbsp;<span class="code">feralcreative/clone-home</span>). To customize your folder structure, go back to the <strong><a href="#organize">Organize</a></strong> tab and arrange your repositories into&nbsp;folders.
                 </div>
 
-                <div class="margin-vertical">
-                    <button class="btn btn-secondary" onclick="previewClone()">Preview clone</button>
-                    <button class="btn" onclick="startClone()">Start cloning</button>
+
+
+                <div class="clone-row flex-between">
+
+                    <div class="btns-clone">
+                        <button class="btn btn-secondary" onclick="previewClone()">
+                            <span class="material-icons">visibility</span>Preview clone
+                        </button>
+                        <button class="btn" onclick="startClone()">
+                            <span class="material-icons">play_arrow</span>Start cloning
+                        </button>
+                    </div>
+
+
+                    <div class="margin-vertical flex-column-end">
+                        <button id="uninstall-btn" class="btn btn-danger" onclick="performUninstall()">
+                            <span class="material-icons">dangerous</span>&nbsp;Complete Uninstall&nbsp;<span class="material-icons">dangerous</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="margin-vertical">
-                    <button class="btn btn-danger" onclick="performUninstall()">
-                        <span class="material-icons">delete_forever</span>Complete Uninstall
-                    </button>
-                </div>
+
+
+
+
+
+
                 <div id="clone-results"></div>
 
                 <!-- Embedded Clone Progress Terminal -->

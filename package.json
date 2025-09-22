@@ -9,12 +9,15 @@
   },
   "scripts": {
     "start": "node src/cli.js",
-    "dev": "node --watch src/cli.js",
+    "dev": "node src/cli.js dev",
     "test": "node --test test/*.test.js",
     "build-css": "sass web/assets/styles/styles.scss web/assets/styles/styles.css",
     "watch-css": "sass --watch web/assets/styles/styles.scss:web/assets/styles/styles.css",
     "build": "npm run build-css",
-    "browsersync": "cd libs/browser-sync && npm run start-clone-home"
+    "browsersync": "cd libs/browser-sync && npm run start-clone-home",
+    "browsersync:gulp": "cd libs/browser-sync && npx gulp serve-clone-home",
+    "browsersync:help": "cd libs/browser-sync && npx gulp help",
+    "browsersync:configs": "cd libs/browser-sync && npx gulp list-configs"
   },
   "keywords": [
     "github",

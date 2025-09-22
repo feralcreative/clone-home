@@ -446,8 +446,32 @@ async function performUninstall() {
 
     showSuccess("Complete uninstall completed! All Clone Home data has been removed.");
 
-    // Reset the form
-    document.getElementById("setup-form").reset();
+    // Reset the form fields manually since setup-form is a div, not a form
+    document.getElementById("token").value = "";
+    document.getElementById("targetDir").value = "";
+
+    // Clear any stored data
+    repositories = [];
+    filteredRepositories = [];
+    organizationConfig = {};
+    selectedRepos.clear();
+
+    // Reset UI elements
+    const repoList = document.getElementById("repo-list");
+    if (repoList) repoList.innerHTML = "";
+
+    const statsGrid = document.getElementById("stats-grid");
+    if (statsGrid) statsGrid.innerHTML = "";
+
+    const detailedStats = document.getElementById("detailed-stats");
+    if (detailedStats) detailedStats.innerHTML = '<div class="loading">Load repositories first</div>';
+
+    const unorganizedRepos = document.getElementById("unorganized-repos");
+    if (unorganizedRepos) unorganizedRepos.innerHTML = '<div class="empty-state">Load repositories first</div>';
+
+    const organizedStructure = document.getElementById("organized-structure");
+    if (organizedStructure)
+      organizedStructure.innerHTML = '<div class="empty-state">Drag repositories here to organize them</div>';
   } catch (error) {
     console.error("Uninstall error:", error);
     showError("Failed to perform complete uninstall: " + error.message);
@@ -693,15 +717,22 @@ async function previewClone() {
 }
 
 function generateCloneHierarchyPreview(repositories) {
-  // Generate vertical org-chart based on actual organizationConfig
+  // Generate clean folder hierarchy showing root folder, then organization structure
   let html = '<div class="clone-hierarchy-succinct">';
 
+  // Get the root folder from configuration (target directory)
+  const targetDir = document.getElementById("targetDir")?.value?.trim() || "~/repositories";
+  const rootFolderName = targetDir.split("/").pop() || "repositories";
+
+  // Show root folder first
+  html += `<div class="clone-folder-path root">${rootFolderName}/</div>`;
+
   if (Object.keys(organizationConfig).length === 0) {
-    // No organization - show default owner/repo structure with individual repos
+    // No organization - show default owner/repo structure
     const ownerGroups = {};
     repositories.forEach((repo) => {
       const owner = repo.owner.login;
-      const repoName = repo.name; // Just the repo name without owner
+      const repoName = repo.name;
       if (!ownerGroups[owner]) {
         ownerGroups[owner] = [];
       }
@@ -711,77 +742,77 @@ function generateCloneHierarchyPreview(repositories) {
     Object.keys(ownerGroups)
       .sort()
       .forEach((owner) => {
-        html += `<div class="clone-folder-path parent">${owner}/</div>`;
+        html += `<div class="clone-folder-path parent" style="margin-left: 16px;">&nbsp;&nbsp;${owner}/</div>`;
         ownerGroups[owner].sort().forEach((repoName) => {
-          html += `<div class="clone-folder-path child">${repoName}</div>`; // Removed trailing slash for repo names
+          html += `<div class="clone-folder-path child" style="margin-left: 32px;">&nbsp;&nbsp;&nbsp;&nbsp;${repoName}</div>`;
         });
       });
   } else {
-    // Use actual organizationConfig to build org-chart with individual repos
+    // Use organization config - show clean folder structure
     const repoMap = {};
     repositories.forEach((repo) => {
-      repoMap[repo.full_name] = repo.name; // Map full name to just repo name
+      repoMap[repo.full_name] = repo.name;
     });
 
-    const folderStructure = {};
-
-    // Build folder structure with actual repositories
+    // Build a clean folder structure
+    const cleanStructure = {};
     Object.entries(organizationConfig).forEach(([folderPath, repoNames]) => {
-      if (folderPath.includes("_placeholder")) return; // Skip placeholder folders
+      if (folderPath.includes("_placeholder")) return;
 
-      if (!folderStructure[folderPath]) {
-        folderStructure[folderPath] = [];
+      const validRepos = repoNames.filter((repoName) => repoMap[repoName]);
+      if (validRepos.length > 0) {
+        cleanStructure[folderPath] = validRepos.map((repoName) => repoMap[repoName]);
       }
-
-      repoNames.forEach((repoName) => {
-        if (repoMap[repoName]) {
-          folderStructure[folderPath].push(repoMap[repoName]); // Use just repo name without owner
-        }
-      });
     });
 
-    // Group folders by parent and render with repositories
-    const parentFolders = {};
-    Object.keys(folderStructure).forEach((folderPath) => {
+    // Build a hierarchical structure to show all folder levels
+    const hierarchy = {};
+
+    Object.keys(cleanStructure).forEach((folderPath) => {
       const parts = folderPath.split("/");
-      const parentName = parts[0];
-      const childPath = parts.length > 1 ? parts.slice(1).join("/") : null;
+      let current = hierarchy;
 
-      if (!parentFolders[parentName]) {
-        parentFolders[parentName] = { direct: [], children: {} };
-      }
-
-      if (childPath) {
-        if (!parentFolders[parentName].children[childPath]) {
-          parentFolders[parentName].children[childPath] = [];
+      // Build the nested structure
+      parts.forEach((part, index) => {
+        if (!current[part]) {
+          current[part] = { folders: {}, repos: [] };
         }
-        parentFolders[parentName].children[childPath] = folderStructure[folderPath];
-      } else {
-        parentFolders[parentName].direct = folderStructure[folderPath];
-      }
+        if (index === parts.length - 1) {
+          // This is the final folder, add the repos
+          current[part].repos = cleanStructure[folderPath];
+        }
+        current = current[part].folders;
+      });
     });
 
-    // Render the org-chart with repositories
-    Object.keys(parentFolders)
-      .sort()
-      .forEach((parentName) => {
-        html += `<div class="clone-folder-path parent">${parentName}/</div>`;
+    // Render the hierarchical structure
+    function renderLevel(level, indent = 16) {
+      Object.keys(level)
+        .sort()
+        .forEach((folderName) => {
+          const folder = level[folderName];
+          const indentStyle = `margin-left: ${indent}px;`;
 
-        // Show direct repositories in parent folder
-        parentFolders[parentName].direct.sort().forEach((repoName) => {
-          html += `<div class="clone-folder-path child">${repoName}</div>`;
-        });
+          // Show the folder
+          html += `<div class="clone-folder-path parent" style="${indentStyle}">&nbsp;&nbsp;${folderName}/</div>`;
 
-        // Show child folders and their repositories
-        Object.entries(parentFolders[parentName].children)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([childPath, repos]) => {
-            html += `<div class="clone-folder-path child">${childPath}/</div>`;
-            repos.sort().forEach((repoName) => {
-              html += `<div class="clone-folder-path child" style="margin-left: 32px;">${repoName}</div>`;
+          // Show repositories in this folder
+          if (folder.repos && folder.repos.length > 0) {
+            folder.repos.sort().forEach((repoName) => {
+              html += `<div class="clone-folder-path child" style="margin-left: ${
+                indent + 16
+              }px;">&nbsp;&nbsp;&nbsp;&nbsp;${repoName}</div>`;
             });
-          });
-      });
+          }
+
+          // Recursively render subfolders
+          if (Object.keys(folder.folders).length > 0) {
+            renderLevel(folder.folders, indent + 16);
+          }
+        });
+    }
+
+    renderLevel(hierarchy);
   }
 
   html += "</div>";
@@ -1535,6 +1566,20 @@ function showSuccess(message) {
   document.querySelector(".container").insertBefore(success, document.querySelector(".tabs"));
 
   setTimeout(() => success.remove(), 5000);
+}
+
+// Collapsible section toggle
+function toggleCollapsible(sectionId) {
+  const content = document.getElementById(sectionId);
+  const header = content.previousElementSibling;
+
+  if (content.classList.contains("expanded")) {
+    content.classList.remove("expanded");
+    header.classList.remove("expanded");
+  } else {
+    content.classList.add("expanded");
+    header.classList.add("expanded");
+  }
 }
 
 // Organization Functions
