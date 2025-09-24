@@ -59,7 +59,6 @@ program
   .command("clone")
   .description("Clone all repositories")
   .option("-d, --dry-run", "Show what would be cloned without actually cloning")
-  .option("-f, --force", "Force clone even if directory exists")
   .option("--filter <pattern>", "Filter repositories by name pattern")
   .action(async (options) => {
     try {

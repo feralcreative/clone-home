@@ -93,14 +93,23 @@ export class CloneHome {
     // Determine the repository path based on directory tree config
     const repoPath = await this.getRepositoryPath(repo, targetPath);
 
-    // Check if repository already exists
+    // SAFETY CHECK: Never overwrite existing directories
+    // This is a critical safety mechanism to prevent data loss
     if (await fs.pathExists(repoPath)) {
-      if (!options.force) {
-        return { status: "exists", path: repoPath };
-      }
+      // Check if it's actually a git repository
+      const gitPath = path.join(repoPath, ".git");
+      const isGitRepo = await fs.pathExists(gitPath);
 
-      // Remove existing directory if force is enabled
-      await fs.remove(repoPath);
+      if (isGitRepo) {
+        return { status: "exists", path: repoPath, message: "Git repository already exists" };
+      } else {
+        // Directory exists but is not a git repository - this could contain user files
+        return {
+          status: "blocked",
+          path: repoPath,
+          message: "Directory exists but is not a git repository. Will not overwrite to prevent data loss.",
+        };
+      }
     }
 
     // Ensure parent directory exists

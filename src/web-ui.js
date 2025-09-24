@@ -536,9 +536,14 @@ export class WebUI {
             successCount++;
             break;
           case "exists":
-            message = `Already exists at ${result.path}`;
+            message = result.message || `Already exists at ${result.path}`;
             status = "success";
             successCount++;
+            break;
+          case "blocked":
+            message = result.message || `Blocked: Directory exists but is not a git repository`;
+            status = "warning";
+            // Don't increment error count for blocked - this is a safety feature
             break;
           case "error":
             message = result.error || "Clone failed";
